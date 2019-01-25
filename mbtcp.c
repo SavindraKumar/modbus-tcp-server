@@ -51,6 +51,19 @@ static uint16_t ReadInputRegisters (uint8_t *pucQuery, uint8_t *pucResponse);
 static uint16_t WriteSingleCoil (uint8_t *pucQuery, uint8_t *pucResponse);
 static uint16_t WriteSingleHoldingRegister (uint8_t *pucQuery, uint8_t *pucResponse);
 static uint16_t WriteMultipleCoils (uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t ReadCoils(uint8_t *pucQuery, uint8_t *pucResponse)
+{
+	uint16_t usDataStartAddress  = 0;
+	uint16_t usNumberOfData      = 0;
+
+	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
+	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
+	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
+	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+
+	return 0;
+
+}
 static uint16_t WriteMultipleHoldingRegisters (uint8_t *pucQuery, uint8_t *pucResponse);
 
 
@@ -235,16 +248,10 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
 static uint16_t HandleRequest (uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint8_t ucFunctionCode       = 0;
-	uint16_t usDataStartAddress  = 0;
-	uint16_t usNumberOfData      = 0;
 	uint16_t usResponseLength    = 0;
 
 	// filter PDU information
 	ucFunctionCode      = (uint8_t)pucQuery[MBT_FUNCTION_CODE_OFFSET];
-	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
-	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
-	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
-	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
 
 	switch (ucFunctionCode)
 	{
@@ -285,11 +292,7 @@ static uint16_t HandleRequest (uint8_t *pucQuery, uint8_t *pucResponse)
  *  @param[out] pucResponse Pointer to modbus response buffer
  *  @return     uint16_t    Response Length
  */
-static uint16_t ReadCoils(uint8_t *pucQuery, uint8_t *pucResponse)
-{
-	return 0;
-
-}//end ReadCoils
+//end ReadCoils
 
 /** @brief Read Discrete Inputs from Modbus data
  *  @param[in]   pucQuery   Pointer  to modbus query buffer
@@ -299,6 +302,14 @@ static uint16_t ReadCoils(uint8_t *pucQuery, uint8_t *pucResponse)
  */
 static uint16_t ReadDiscreteInputs(uint8_t *pucQuery, uint8_t *pucResponse)
 {
+	uint16_t usDataStartAddress  = 0;
+	uint16_t usNumberOfData      = 0;
+
+	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
+	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
+	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
+	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+
 	return 0;
 }//end ReadDiscreteInputs
 
@@ -310,6 +321,14 @@ static uint16_t ReadDiscreteInputs(uint8_t *pucQuery, uint8_t *pucResponse)
  */
 static uint16_t ReadHoldingRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
 {
+	uint16_t usDataStartAddress  = 0;
+	uint16_t usNumberOfData      = 0;
+
+	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
+	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
+	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
+	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+
 	return 0;
 }//end ReadHoldingRegisters
 
@@ -321,6 +340,14 @@ static uint16_t ReadHoldingRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
  */
 static uint16_t ReadInputRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
 {
+	uint16_t usDataStartAddress  = 0;
+	uint16_t usNumberOfData      = 0;
+
+	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
+	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
+	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
+	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+
 	return 0;
 }//end ReadInputRegisters
 
@@ -332,6 +359,14 @@ static uint16_t ReadInputRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
  */
 static uint16_t WriteSingleCoil(uint8_t *pucQuery, uint8_t *pucResponse)
 {
+	uint16_t usDataStartAddress  = 0;
+	uint16_t usNumberOfData      = 0;
+
+	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
+	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
+	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
+	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+
 	return 0;
 }//end WriteSingleCoil
 
@@ -343,6 +378,14 @@ static uint16_t WriteSingleCoil(uint8_t *pucQuery, uint8_t *pucResponse)
  */
 static uint16_t WriteSingleHoldingRegister(uint8_t *pucQuery, uint8_t *pucResponse)
 {
+	uint16_t usDataStartAddress  = 0;
+	uint16_t usNumberOfData      = 0;
+
+	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
+	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
+	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
+	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+
 	return 0;
 }//end WriteSingleHoldingRegister
 
@@ -354,6 +397,14 @@ static uint16_t WriteSingleHoldingRegister(uint8_t *pucQuery, uint8_t *pucRespon
  */
 static uint16_t WriteMultipleCoils(uint8_t *pucQuery, uint8_t *pucResponse)
 {
+	uint16_t usDataStartAddress  = 0;
+	uint16_t usNumberOfData      = 0;
+
+	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
+	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
+	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
+	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+
 	return 0;
 }//end WriteMultipleCoils
 
@@ -366,6 +417,14 @@ static uint16_t WriteMultipleCoils(uint8_t *pucQuery, uint8_t *pucResponse)
  */
 static uint16_t WriteMultipleHoldingRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
 {
+	uint16_t usDataStartAddress  = 0;
+	uint16_t usNumberOfData      = 0;
+
+	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
+	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
+	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
+	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+
 	return 0;
 }//end WriteMultipleHoldingRegisters
 
