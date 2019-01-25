@@ -61,10 +61,21 @@ static uint16_t WriteMultipleHoldingRegisters (uint8_t *pucQuery, uint8_t *pucRe
 /******************************************************************************
  *                           Private variables
  ******************************************************************************/
+static ModbusData_t m_ModbusData;
 
 /******************************************************************************
  *                    G L O B A L  F U N C T I O N S
  ******************************************************************************/
+/** @brief Intialise Modbus Data
+ *  @param[in]  ModbusData  Modbus data structure
+ *  @return     None
+ */
+void MBT_DataInit(ModbusData_t ModbusData)
+{
+	m_ModbusData = ModbusData;
+
+}//end MBT_DataInit
+
 /** @brief Process Modbus TCP Application request
  *  @param[in]   pucQuery      Pointer to Modbus TCP Query buffer
  *  @param[in]   ucQueryLength Modbus TCP Query Length
