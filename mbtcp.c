@@ -42,8 +42,17 @@
 /******************************************************************************
  *                           Private Functions
  ******************************************************************************/
+static uint16_t HandleRequest (uint8_t *pucQuery, uint8_t *pucResponse);
 static uint8_t ValidateFunctionCodeAndDataAddress (uint8_t *pucQuery);
-static uint8_t HandleRequest (uint8_t *pucQuery, uint8_t *pucResponse, uint16_t *usResponseLength);
+static uint16_t ReadCoils (uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t ReadDiscreteInputs (uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t ReadHoldingRegisters (uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t ReadInputRegisters (uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t WriteSingleCoil (uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t WriteSingleHoldingRegister (uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t WriteMultipleCoils (uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t WriteMultipleHoldingRegisters (uint8_t *pucQuery, uint8_t *pucResponse);
+
 
 /******************************************************************************
  *                           external variables
@@ -100,11 +109,14 @@ uint16_t MBT_ProcessRequest(uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *p
 	if (0 != pusResponseLength)
 	{
 		ucException = ValidateFunctionCodeAndDataAddress(pucQuery);
-		ucException = HandleRequest(pucQuery, pucResponse, &pusResponseLength);
 
 		if (ucException)
 		{
 			pusResponseLength =  MBT_EXCEPTION_PACKET_LENGTH;
+		}//end if
+		else
+		{
+			pusResponseLength = HandleRequest(pucQuery, pucResponse);
 		}//end if
 	}//end if
 
@@ -218,14 +230,144 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
 /** @brief Handle Modbus Request after function code data adddress validated successfully
  *  @param[in]    pucQuery         Pointer to modbus query buffer
  *  @param[out]   pucResponse      Pointer to modbus response buffer
- *  @param[out]   ucResponseLength Pointer to modbus response length
- *  @return       uint8_t          0 - No Exception, nonzero - Exception in Request
+ *  @return       uint16_t         ResponeLength
  */
-static uint8_t HandleRequest (uint8_t *pucQuery, uint8_t *pucResponse, uint16_t *usResponseLength)
+static uint16_t HandleRequest (uint8_t *pucQuery, uint8_t *pucResponse)
+{
+	uint8_t ucFunctionCode       = 0;
+	uint16_t usDataStartAddress  = 0;
+	uint16_t usNumberOfData      = 0;
+	uint16_t usResponseLength    = 0;
+
+	// filter PDU information
+	ucFunctionCode      = (uint8_t)pucQuery[MBT_FUNCTION_CODE_OFFSET];
+	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
+	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
+	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
+	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+
+	switch (ucFunctionCode)
+	{
+	case FC_READ_COILS:
+		usResponseLength = ReadCoils(pucQuery, pucResponse);
+		break;
+	case FC_READ_DISCRETE_INPUTS:
+		usResponseLength = ReadDiscreteInputs(pucQuery, pucResponse);
+		break;
+	case FC_READ_HOLDING_REGISTERS:
+		usResponseLength = ReadHoldingRegisters(pucQuery, pucResponse);
+		break;
+	case FC_READ_INPUT_REGISTERS:
+		usResponseLength = ReadInputRegisters(pucQuery, pucResponse);
+		break;
+	case FC_WRITE_COIL:
+		usResponseLength = WriteSingleCoil(pucQuery, pucResponse);
+		break;
+	case FC_WRITE_HOLDING_REGISTER:
+		usResponseLength = WriteSingleHoldingRegister(pucQuery, pucResponse);
+		break;
+	case FC_WRITE_COILS:
+		usResponseLength = WriteMultipleCoils(pucQuery, pucResponse);
+		break;
+	case FC_WRITE_HOLDING_REGISTERS:
+		usResponseLength = WriteMultipleHoldingRegisters(pucQuery, pucResponse);
+		break;
+	default:
+		usResponseLength = 0;
+		break;
+	}//end switch
+
+	return (usResponseLength);
+}//end HandleRequest
+
+/** @brief Read Coils from Modbus data
+ *  @param[in]  pucQuery    Pointer to modbus query buffer
+ *  @param[out] pucResponse Pointer to modbus response buffer
+ *  @return     uint16_t    Response Length
+ */
+static uint16_t ReadCoils(uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	return 0;
 
-}//end HandleRequest
+}//end ReadCoils
+
+/** @brief Read Discrete Inputs from Modbus data
+ *  @param[in]   pucQuery   Pointer  to modbus query buffer
+ *  @param[out]  pucResponse Pointer to modbus response buffer
+ *  @return      uint16_t    Response Length
+ *
+ */
+static uint16_t ReadDiscreteInputs(uint8_t *pucQuery, uint8_t *pucResponse)
+{
+	return 0;
+}//end ReadDiscreteInputs
+
+/** @brief Read Holding Registers from Modbus data
+ *  @param[in]   pucQuery   Pointer  to modbus query buffer
+ *  @param[out]  pucResponse Pointer to modbus response buffer
+ *  @return      uint16_t    Response Length
+ *
+ */
+static uint16_t ReadHoldingRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
+{
+	return 0;
+}//end ReadHoldingRegisters
+
+/** @brief Read Input Registers from Modbus data
+ *  @param[in]   pucQuery   Pointer  to modbus query buffer
+ *  @param[out]  pucResponse Pointer to modbus response buffer
+ *  @return      uint16_t    Response Length
+ *
+ */
+static uint16_t ReadInputRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
+{
+	return 0;
+}//end ReadInputRegisters
+
+/** @brief Read Write Single Coil into Modbus data
+ *  @param[in]   pucQuery   Pointer  to modbus query buffer
+ *  @param[out]  pucResponse Pointer to modbus response buffer
+ *  @return      uint16_t    Response Length
+ *
+ */
+static uint16_t WriteSingleCoil(uint8_t *pucQuery, uint8_t *pucResponse)
+{
+	return 0;
+}//end WriteSingleCoil
+
+/** @brief Read Write Single Holding Register into Modbus data
+ *  @param[in]   pucQuery   Pointer  to modbus query buffer
+ *  @param[out]  pucResponse Pointer to modbus response buffer
+ *  @return      uint16_t    Response Length
+ *
+ */
+static uint16_t WriteSingleHoldingRegister(uint8_t *pucQuery, uint8_t *pucResponse)
+{
+	return 0;
+}//end WriteSingleHoldingRegister
+
+/** @brief Read Write Multiple Coils into Modbus data
+ *  @param[in]   pucQuery   Pointer  to modbus query buffer
+ *  @param[out]  pucResponse Pointer to modbus response buffer
+ *  @return      uint16_t    Response Length
+ *
+ */
+static uint16_t WriteMultipleCoils(uint8_t *pucQuery, uint8_t *pucResponse)
+{
+	return 0;
+}//end WriteMultipleCoils
+
+
+/** @brief Read Write Multiple Holding Registers into Modbus data
+ *  @param[in]   pucQuery   Pointer  to modbus query buffer
+ *  @param[out]  pucResponse Pointer to modbus response buffer
+ *  @return      uint16_t    Response Length
+ *
+ */
+static uint16_t WriteMultipleHoldingRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
+{
+	return 0;
+}//end WriteMultipleHoldingRegisters
 
 /******************************************************************************
  *                             End of file
