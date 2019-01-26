@@ -58,6 +58,7 @@ static uint16_t WriteSingleCoil (uint8_t *pucQuery, uint8_t *pucResponse);
 static uint16_t WriteSingleHoldingRegister (uint8_t *pucQuery, uint8_t *pucResponse);
 static uint16_t WriteMultipleCoils (uint8_t *pucQuery, uint8_t *pucResponse);
 static uint16_t WriteMultipleHoldingRegisters (uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t BuildExceptionPacket (uint8_t *pucQuery, uint8_t ucException, uint8_t *pucResponse);
 
 
 /******************************************************************************
@@ -129,7 +130,7 @@ uint16_t MBT_ProcessRequest(uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *p
 
 		if (ucException)
 		{
-			pusResponseLength =  MBT_EXCEPTION_PACKET_LENGTH;
+			pusResponseLength = BuildExceptionPacket(pucQuery, ucException, pucResponse);
 		}//end if
 		else
 		{
@@ -298,6 +299,24 @@ static uint16_t HandleRequest (uint8_t *pucQuery, uint8_t *pucResponse)
 
 	return (usResponseLength);
 }//end HandleRequest
+
+/** @brief Build Exception Packet
+ *  @param[in]    pucQuery     Pointer to modbus query buffer
+ *  @param[in]    ucException  Exception type
+ *  @param[out]   pucResponse  Pointer to modbus response buffer
+ *  @return       uint16_t     Response Length
+ */
+static uint16_t BuildExceptionPacket(uint8_t *pucQuery, uint8_t ucException, uint8_t *pucResponse)
+{
+	memcpy(pucResponse, pucQuery, MBAP_HEADER_LENGTH);
+	//Modify information for response
+	pucResponse[MBAP_LENGTH_OFFSET]       = 0;
+	pucResponse[MBAP_LENGTH_OFFSET + 1]   = 3;
+	pucResponse[MBT_FUNCTION_CODE_OFFSET] = 0x80 + pucQuery[MBT_FUNCTION_CODE_OFFSET];
+	pucResponse[8]                        = ucException;
+
+	return (MBT_EXCEPTION_PACKET_LENGTH);
+}//end BuildExceptionPacket
 
 /** @brief Read Coils from Modbus data
  *  @param[in]  pucQuery    Pointer to modbus query buffer
