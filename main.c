@@ -17,11 +17,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-
+#include "mbtcpconf.h"
+#include "tcp.h"
 
 /******************************************************************************
  *                           Defines and typedefs
  ******************************************************************************/
+#define INPUT_REGISTER_START_ADDRESS         0
+#define NUMBER_OF_INPUT_REGISTERS            10
 
 /******************************************************************************
  *                           external variables
@@ -30,7 +33,7 @@
 /******************************************************************************
  *                           Local variables
  ******************************************************************************/
-
+int16_t g_sInputRegisters[NUMBER_OF_INPUT_REGISTERS] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
 /******************************************************************************
  *                           Local Functions
@@ -45,11 +48,14 @@
  */
 int main(void)
 {
+	ModbusData_t ModbusData;
 
-	for(;;)
-	{
+	ModbusData.psInputRegisters            = g_sInputRegisters;
+	ModbusData.usInputRegisterStartAddress = INPUT_REGISTER_START_ADDRESS;
+	ModbusData.usNumOfInputRegisters       = NUMBER_OF_INPUT_REGISTERS;
 
-	}//end for
+	MBT_DataInit(ModbusData);
+	TcpInit();
 
 	return 0;
 }//end main
