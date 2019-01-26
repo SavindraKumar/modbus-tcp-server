@@ -13,6 +13,8 @@
  *                           Includes
  ******************************************************************************/
 //standard header files
+#include <stdio.h>
+#include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
 //user defined header files
@@ -23,15 +25,19 @@
  ******************************************************************************/
 #define MBT_PROTOCOL_ID                     0
 #define DEVICE_ID                           1
+#define MBAP_HEADER_LENGTH                  8
 //Modbus Application Protocol Header
 #define MBAP_TRANSACTION_ID_OFFSET          0
 #define MBAP_PROTOCOL_ID_OFFSET             2
 #define MBAP_LENGTH_OFFSET                  4
 #define MBAP_UNIT_ID_OFFSET                 6
-//PDU Offset
+//PDU Offset in query
 #define MBT_FUNCTION_CODE_OFFSET            7
 #define MBT_DATA_START_ADDRESS_OFFSET       8
 #define MBT_NO_OF_DATA_OFFSET               10
+//PDU Offset in response
+#define MBT_BYTE_COUNT_OFFSET               8
+#define MBT_DATA_VALUES_OFFSET              9
 
 #define MBT_MAX_PDU_LENGTH                  256
 #define MBT_EXCEPTION_PACKET_LENGTH         9
@@ -160,7 +166,8 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
 	{
 #ifdef FC_READ_COILS_ENABLE
 	case FC_READ_COILS:
-		if (!((usDataStartAddress >= 0) && ((usDataStartAddress + usNumberOfData) <= 0)))
+		if (!((usDataStartAddress >= m_ModbusData.usCoilsStartAddress) &&
+			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData.usCoilsStartAddress + m_ModbusData.usNumOfCoils))))
 		{
 			ucException = ILLEGAL_DATA_ADDRESS;
 		}
@@ -169,7 +176,8 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
 
 #ifdef FC_READ_DISCRETE_INPUTS_ENABLE
 	case FC_READ_DISCRETE_INPUTS:
-		if (!((usDataStartAddress >= 0) && ((usDataStartAddress + usNumberOfData) <= 0)))
+		if (!((usDataStartAddress >= m_ModbusData.usDiscreteInputStartAddress) &&
+			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData.usDiscreteInputStartAddress + m_ModbusData.usNumDiscreteInputs))))
 		{
 			ucException = ILLEGAL_DATA_ADDRESS;
 		}
@@ -178,7 +186,8 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
 
 #ifdef FC_READ_HOLDING_REGISTERS_ENABLE
 	case FC_READ_HOLDING_REGISTERS:
-		if (!((usDataStartAddress >= 0) && ((usDataStartAddress + usNumberOfData) <= 0)))
+		if (!((usDataStartAddress >= m_ModbusData.usHoldingRegisterStartAddress) &&
+			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData.usHoldingRegisterStartAddress + m_ModbusData.usNumOfHoldingRegisters))))
 		{
 			ucException = ILLEGAL_DATA_ADDRESS;
 		}
@@ -187,7 +196,8 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
 
 #ifdef FC_READ_INPUT_REGISTERS_ENABLE
 	case FC_READ_INPUT_REGISTERS:
-		if (!((usDataStartAddress >= 0) && ((usDataStartAddress + usNumberOfData) <= 0)))
+		if (!((usDataStartAddress >= m_ModbusData.usInputRegisterStartAddress) &&
+			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData.usInputRegisterStartAddress + m_ModbusData.usNumOfInputRegisters))))
 		{
 			ucException = ILLEGAL_DATA_ADDRESS;
 		}
@@ -196,7 +206,8 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
 
 #ifdef FC_WRITE_COIL_ENABLE
 	case FC_WRITE_COIL:
-		if (!((usDataStartAddress >= 0) && ((usDataStartAddress + usNumberOfData) <= 0)))
+		if (!((usDataStartAddress >= m_ModbusData.usCoilsStartAddress) &&
+			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData.usCoilsStartAddress + m_ModbusData.usNumOfCoils))))
 		{
 			ucException = ILLEGAL_DATA_ADDRESS;
 		}
@@ -205,7 +216,8 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
 
 #ifdef FC_WRITE_HOLDING_REGISTER_ENABLE
 	case FC_WRITE_HOLDING_REGISTER:
-		if (!((usDataStartAddress >= 0) && ((usDataStartAddress + usNumberOfData) <= 0)))
+		if (!((usDataStartAddress >= m_ModbusData.usHoldingRegisterStartAddress) &&
+			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData.usHoldingRegisterStartAddress + m_ModbusData.usNumOfHoldingRegisters))))
 		{
 			ucException = ILLEGAL_DATA_ADDRESS;
 		}
@@ -214,7 +226,8 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
 
 #ifdef FC_WRITE_COILS_ENABLE
 	case FC_WRITE_COILS:
-		if (!((usDataStartAddress >= 0) && ((usDataStartAddress + usNumberOfData) <= 0)))
+		if (!((usDataStartAddress >= m_ModbusData.usCoilsStartAddress) &&
+			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData.usCoilsStartAddress + m_ModbusData.usNumOfCoils))))
 		{
 			ucException = ILLEGAL_DATA_ADDRESS;
 		}
@@ -223,7 +236,8 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
 
 #ifdef FC_WRITE_HOLDING_REGISTERS_ENABLE
 	case FC_WRITE_HOLDING_REGISTERS:
-		if (!((usDataStartAddress >= 0) && ((usDataStartAddress + usNumberOfData) <= 0)))
+		if (!((usDataStartAddress >= m_ModbusData.usHoldingRegisterStartAddress) &&
+			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData.usHoldingRegisterStartAddress + m_ModbusData.usNumOfHoldingRegisters))))
 		{
 			ucException = ILLEGAL_DATA_ADDRESS;
 		}
@@ -353,13 +367,40 @@ static uint16_t ReadInputRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint16_t usDataStartAddress  = 0;
 	uint16_t usNumberOfData      = 0;
+	uint16_t usPduLength         = 0;
+	uint16_t usStartAddress      = 0;
+	uint16_t usResponseLength    = 0;
+	uint8_t *pucRegBuffer        = NULL;
 
 	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
 	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
 	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
 	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
 
-	return 0;
+	usStartAddress = (usDataStartAddress - m_ModbusData.usInputRegisterStartAddress);
+
+	//UnitId(1 byte) + function code(1 byte) + Byte Count(1 byte) + (2 * Number of Data)
+	usPduLength = 3 + (usNumberOfData * 2);
+    //Copy MBAP Header into respone
+	memcpy(pucResponse, pucQuery, MBAP_HEADER_LENGTH);
+    //Modify Information in MBAP Header for response
+	pucResponse[MBAP_LENGTH_OFFSET]     = (uint16_t)(usPduLength << 8);
+	pucResponse[MBAP_LENGTH_OFFSET + 1] = (uint16_t)(usPduLength & 0xFF);
+	pucResponse[MBT_BYTE_COUNT_OFFSET]  = (uint8_t)(usNumberOfData * 2);
+	pucRegBuffer                        = &pucResponse[MBT_DATA_VALUES_OFFSET];
+
+	while (usNumberOfData > 0)
+    {
+		*pucRegBuffer++ = (uint8_t)(m_ModbusData.psInputRegisters[usStartAddress] >> 8);
+        *pucRegBuffer++ = (uint8_t)(m_ModbusData.psInputRegisters[usStartAddress] & 0xFF);
+        usStartAddress++;
+		usNumberOfData--;
+    }//end while
+
+	//MBAP Header + Byte Count + data length
+	usResponseLength = MBT_DATA_VALUES_OFFSET + (usNumberOfData * 2);
+
+	return (usResponseLength);
 }//end ReadInputRegisters
 
 /** @brief Read Write Single Coil into Modbus data

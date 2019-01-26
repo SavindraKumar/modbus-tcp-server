@@ -22,16 +22,20 @@
 ******************************************************************************/
 typedef struct
 {
-	int16_t *psInputRegisters;            /*!< Pointer to Modbus Input Registers data*/
-	int16_t *psHoldingRegisters;          /*!< Pointer to Modbus Holding Registers data */
-	uint8_t *pucCoils;                    /*!< Pointer to Modbus Coils Data*/
-	uint8_t *pucDiscreteInputs;           /*!< Pointer to Modbus Discrete Inputs Data */
-	int16_t *psHoldingRegisterLowerLimit; /*!<Pointer to Holding Register Lower Limits*/
-	int16_t *psHoldingRegisterHigherLimit; /*!<Pointer to Holding Register Lower Limits*/
-	uint16_t usNumOfInputRegisters;       /*!< Number of Input Registers */
-	uint16_t usNumOfHoldingRegisters;     /*!< Number of Holding Registers */
-	uint16_t usNumOfCoils;                /*!< Number of Coils */
-	uint16_t usDiscreteInputs;            /*!< Number of Discrete Inputs */
+	int16_t *psInputRegisters;              /*!< Pointer to Modbus Input Registers data*/
+	int16_t *psHoldingRegisters;            /*!< Pointer to Modbus Holding Registers data */
+	uint8_t *pucCoils;                      /*!< Pointer to Modbus Coils Data*/
+	uint8_t *pucDiscreteInputs;             /*!< Pointer to Modbus Discrete Inputs Data */
+	int16_t *psHoldingRegisterLowerLimit;   /*!< Pointer to Holding Register Lower Limits */
+	int16_t *psHoldingRegisterHigherLimit;  /*!< Pointer to Holding Register Lower Limits */
+	uint16_t usInputRegisterStartAddress;   /*!< Input Register Start Address*/
+	uint16_t usHoldingRegisterStartAddress; /*!< Holding Register Start Address*/
+	uint16_t usCoilsStartAddress;           /*!< Coil Start Address */
+	uint16_t usDiscreteInputStartAddress;   /*!< Discrete Input Start Address */
+	uint16_t usNumOfInputRegisters;         /*!< Number of Input Registers */
+	uint16_t usNumOfHoldingRegisters;       /*!< Number of Holding Registers */
+	uint16_t usNumOfCoils;                  /*!< Number of Coils */
+	uint16_t usNumDiscreteInputs;           /*!< Number of Discrete Inputs */
 }ModbusData_t;
 
 //Enable or Disable Read Coils  Function Code
