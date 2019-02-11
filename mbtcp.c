@@ -48,17 +48,18 @@
 /******************************************************************************
  *                           Private Functions
  ******************************************************************************/
-static uint16_t HandleRequest (uint8_t *pucQuery, uint8_t *pucResponse);
-static uint8_t ValidateFunctionCodeAndDataAddress (uint8_t *pucQuery);
-static uint16_t ReadCoils (uint8_t *pucQuery, uint8_t *pucResponse);
-static uint16_t ReadDiscreteInputs (uint8_t *pucQuery, uint8_t *pucResponse);
-static uint16_t ReadHoldingRegisters (uint8_t *pucQuery, uint8_t *pucResponse);
-static uint16_t ReadInputRegisters (uint8_t *pucQuery, uint8_t *pucResponse);
-static uint16_t WriteSingleCoil (uint8_t *pucQuery, uint8_t *pucResponse);
-static uint16_t WriteSingleHoldingRegister (uint8_t *pucQuery, uint8_t *pucResponse);
-static uint16_t WriteMultipleCoils (uint8_t *pucQuery, uint8_t *pucResponse);
-static uint16_t WriteMultipleHoldingRegisters (uint8_t *pucQuery, uint8_t *pucResponse);
-static uint16_t BuildExceptionPacket (uint8_t *pucQuery, uint8_t ucException, uint8_t *pucResponse);
+static uint16_t HandleRequest (const uint8_t *pucQuery, uint8_t *pucResponse);
+static uint8_t ValidateFunctionCodeAndDataAddress (const uint8_t *pucQuery);
+static bool BasicValidation (const uint8_t *pucQuery);
+static uint16_t ReadCoils (const uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t ReadDiscreteInputs (const uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t ReadHoldingRegisters (const uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t ReadInputRegisters (const uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t WriteSingleCoil (const uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t WriteSingleHoldingRegister (const uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t WriteMultipleCoils (const uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t WriteMultipleHoldingRegisters (const uint8_t *pucQuery, uint8_t *pucResponse);
+static uint16_t BuildExceptionPacket (const uint8_t *pucQuery, uint8_t ucException, uint8_t *pucResponse);
 
 
 /******************************************************************************
@@ -89,42 +90,17 @@ void MBT_DataInit(ModbusData_t ModbusData)
  *  @param[out]  pucResponse   Pointer to Modbus TCP Response buffer
  *  @return      uint16_t      Modbus TCP Response Length
  */
-uint16_t MBT_ProcessRequest(uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse)
+uint16_t MBT_ProcessRequest(const uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse)
 {
 	uint16_t pusResponseLength = 0;
-	uint16_t usProtocolId      = 0;
-	uint16_t usPdulength       = 0;
-	uint8_t ucUnitId           = 0;
 	uint8_t ucException        = 0;
+	bool bStatus               = false;
 
-	//Modbus Application Protocol(MBAP) Header Information
-	usProtocolId        = (uint16_t)(pucQuery[MBAP_PROTOCOL_ID_OFFSET] << 8);
-	usProtocolId       |= (uint16_t)(pucQuery[MBAP_PROTOCOL_ID_OFFSET + 1]);
-	usPdulength         = (uint16_t)(pucQuery[MBAP_LENGTH_OFFSET] << 8);
-	usPdulength        |= (uint16_t)(pucQuery[MBAP_LENGTH_OFFSET + 1]);
-	ucUnitId            = (uint8_t)(pucQuery[MBAP_UNIT_ID_OFFSET]);
-
-	//check for Modbus TCP/IP protocol
-	if (MBT_PROTOCOL_ID != usProtocolId)
-	{
-		pusResponseLength = 0;
-	}
-
-	//check if pdu length exceed
-	if (usPdulength > MBT_MAX_PDU_LENGTH )
-	{
-		pusResponseLength = 0;
-	}
-
-	//check for Unit Id
-	if (DEVICE_ID != ucUnitId)
-	{
-		pusResponseLength = 0;
-	}
+	bStatus = BasicValidation(pucQuery);
 
 	//If Protocol Id, Pdu length or Unit Id validated sucessfully
 	//Proceed for next validation steps
-	if (0 != pusResponseLength)
+	if (bStatus)
 	{
 		ucException = ValidateFunctionCodeAndDataAddress(pucQuery);
 
@@ -144,12 +120,52 @@ uint16_t MBT_ProcessRequest(uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *p
 /******************************************************************************
  *                           L O C A L  F U N C T I O N S
  ******************************************************************************/
+/** @brief Validate protocol id, uint id and pdu length
+ *  @param[in] pucQuery Pointer to modbus query buffer
+ *  @parm[out] None
+ *  @return    bool true - Validation ok, false - Validate not ok
+ */
+static bool BasicValidation(const uint8_t *pucQuery)
+{
+	bool bStatus               = true;
+	uint16_t usProtocolId      = 0;
+	uint16_t usPdulength       = 0;
+	uint8_t ucUnitId           = 0;
+
+	//Modbus Application Protocol(MBAP) Header Information
+	usProtocolId        = (uint16_t)(pucQuery[MBAP_PROTOCOL_ID_OFFSET] << 8);
+	usProtocolId       |= (uint16_t)(pucQuery[MBAP_PROTOCOL_ID_OFFSET + 1]);
+	usPdulength         = (uint16_t)(pucQuery[MBAP_LENGTH_OFFSET] << 8);
+	usPdulength        |= (uint16_t)(pucQuery[MBAP_LENGTH_OFFSET + 1]);
+	ucUnitId            = (uint8_t)(pucQuery[MBAP_UNIT_ID_OFFSET]);
+
+	//check for Modbus TCP/IP protocol
+	if (MBT_PROTOCOL_ID != usProtocolId)
+	{
+		bStatus = false;
+	}
+
+	//check if pdu length exceed
+	if (usPdulength > MBT_MAX_PDU_LENGTH )
+	{
+		bStatus = false;
+	}
+
+	//check for Unit Id
+	if (DEVICE_ID != ucUnitId)
+	{
+		bStatus = false;
+	}
+
+	return (bStatus);
+}//end BasicValidation
+
 /** @brief Validate function code and data address in modbus query
  *  @param[in]  pucQuery Pointer to modbus query buffer
  *  @param[out] None
  *  @return     uint8_t 0 - NoException, nonzero - Exception
  */
-static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
+static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 {
 	uint8_t ucFunctionCode      = 0;
 	uint16_t usDataStartAddress = 0;
@@ -258,7 +274,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(uint8_t *pucQuery)
  *  @param[out]   pucResponse      Pointer to modbus response buffer
  *  @return       uint16_t         ResponeLength
  */
-static uint16_t HandleRequest (uint8_t *pucQuery, uint8_t *pucResponse)
+static uint16_t HandleRequest(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint8_t ucFunctionCode       = 0;
 	uint16_t usResponseLength    = 0;
@@ -306,7 +322,7 @@ static uint16_t HandleRequest (uint8_t *pucQuery, uint8_t *pucResponse)
  *  @param[out]   pucResponse  Pointer to modbus response buffer
  *  @return       uint16_t     Response Length
  */
-static uint16_t BuildExceptionPacket(uint8_t *pucQuery, uint8_t ucException, uint8_t *pucResponse)
+static uint16_t BuildExceptionPacket(const uint8_t *pucQuery, uint8_t ucException, uint8_t *pucResponse)
 {
 	memcpy(pucResponse, pucQuery, MBAP_HEADER_LENGTH);
 	//Modify information for response
@@ -323,7 +339,7 @@ static uint16_t BuildExceptionPacket(uint8_t *pucQuery, uint8_t ucException, uin
  *  @param[out] pucResponse Pointer to modbus response buffer
  *  @return     uint16_t    Response Length
  */
-static uint16_t ReadCoils(uint8_t *pucQuery, uint8_t *pucResponse)
+static uint16_t ReadCoils(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint16_t usDataStartAddress  = 0;
 	uint16_t usNumberOfData      = 0;
@@ -344,7 +360,7 @@ static uint16_t ReadCoils(uint8_t *pucQuery, uint8_t *pucResponse)
  *  @return      uint16_t    Response Length
  *
  */
-static uint16_t ReadDiscreteInputs(uint8_t *pucQuery, uint8_t *pucResponse)
+static uint16_t ReadDiscreteInputs(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint16_t usDataStartAddress  = 0;
 	uint16_t usNumberOfData      = 0;
@@ -363,7 +379,7 @@ static uint16_t ReadDiscreteInputs(uint8_t *pucQuery, uint8_t *pucResponse)
  *  @return      uint16_t    Response Length
  *
  */
-static uint16_t ReadHoldingRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
+static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint16_t usDataStartAddress  = 0;
 	uint16_t usNumberOfData      = 0;
@@ -382,7 +398,7 @@ static uint16_t ReadHoldingRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
  *  @return      uint16_t    Response Length
  *
  */
-static uint16_t ReadInputRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
+static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint16_t usDataStartAddress  = 0;
 	uint16_t usNumberOfData      = 0;
@@ -428,7 +444,7 @@ static uint16_t ReadInputRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
  *  @return      uint16_t    Response Length
  *
  */
-static uint16_t WriteSingleCoil(uint8_t *pucQuery, uint8_t *pucResponse)
+static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint16_t usDataStartAddress  = 0;
 	uint16_t usNumberOfData      = 0;
@@ -447,7 +463,7 @@ static uint16_t WriteSingleCoil(uint8_t *pucQuery, uint8_t *pucResponse)
  *  @return      uint16_t    Response Length
  *
  */
-static uint16_t WriteSingleHoldingRegister(uint8_t *pucQuery, uint8_t *pucResponse)
+static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint16_t usDataStartAddress  = 0;
 	uint16_t usNumberOfData      = 0;
@@ -466,7 +482,7 @@ static uint16_t WriteSingleHoldingRegister(uint8_t *pucQuery, uint8_t *pucRespon
  *  @return      uint16_t    Response Length
  *
  */
-static uint16_t WriteMultipleCoils(uint8_t *pucQuery, uint8_t *pucResponse)
+static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint16_t usDataStartAddress  = 0;
 	uint16_t usNumberOfData      = 0;
@@ -486,7 +502,7 @@ static uint16_t WriteMultipleCoils(uint8_t *pucQuery, uint8_t *pucResponse)
  *  @return      uint16_t    Response Length
  *
  */
-static uint16_t WriteMultipleHoldingRegisters(uint8_t *pucQuery, uint8_t *pucResponse)
+static uint16_t WriteMultipleHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint16_t usDataStartAddress  = 0;
 	uint16_t usNumberOfData      = 0;
