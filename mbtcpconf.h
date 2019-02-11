@@ -69,7 +69,7 @@ typedef struct
 /******************************************************************************
  *                           Global Functions
 ******************************************************************************/
-void MBT_DataInit (const ModbusData_t ModbusData);
+void MBT_DataInit (const ModbusData_t *ModbusData);
 uint16_t MBT_ProcessRequest (const uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse);
 
 #endif /* _MBTCPCONF_H */
