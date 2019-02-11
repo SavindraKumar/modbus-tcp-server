@@ -383,13 +383,40 @@ static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucRespon
 {
 	uint16_t usDataStartAddress  = 0;
 	uint16_t usNumberOfData      = 0;
+	uint16_t usPduLength         = 0;
+	uint16_t usStartAddress      = 0;
+	uint16_t usResponseLength    = 0;
+	uint8_t *pucRegBuffer        = NULL;
 
 	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
 	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
 	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
 	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
 
-	return 0;
+	usStartAddress = (usDataStartAddress - m_ModbusData->usHoldingRegisterStartAddress);
+
+	//UnitId(1 byte) + function code(1 byte) + Byte Count(1 byte) + (2 * Number of Data)
+	usPduLength = 3 + (usNumberOfData * 2);
+    //Copy MBAP Header into respone
+	memcpy(pucResponse, pucQuery, MBAP_HEADER_LENGTH);
+    //Modify Information in MBAP Header for response
+	pucResponse[MBAP_LENGTH_OFFSET]     = (uint16_t)(usPduLength << 8);
+	pucResponse[MBAP_LENGTH_OFFSET + 1] = (uint16_t)(usPduLength & 0xFF);
+	pucResponse[MBT_BYTE_COUNT_OFFSET]  = (uint8_t)(usNumberOfData * 2);
+	pucRegBuffer                        = &pucResponse[MBT_DATA_VALUES_OFFSET];
+
+	while (usNumberOfData > 0)
+    {
+		*pucRegBuffer++ = (uint8_t)(m_ModbusData->psHoldingRegisters[usStartAddress] >> 8);
+        *pucRegBuffer++ = (uint8_t)(m_ModbusData->psHoldingRegisters[usStartAddress] & 0xFF);
+        usStartAddress++;
+		usNumberOfData--;
+    }//end while
+
+	//MBAP Header + Byte Count + data length
+	usResponseLength = MBT_DATA_VALUES_OFFSET + (usNumberOfData * 2);
+
+	return (usResponseLength);
 }//end ReadHoldingRegisters
 
 /** @brief Read Input Registers from Modbus data
