@@ -460,7 +460,7 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
     }//end while
 
 	//MBAP Header + Byte Count + data length
-	usResponseLength = MBT_DATA_VALUES_OFFSET + (usNumberOfData * 2);
+	usResponseLength = MBT_DATA_VALUES_OFFSET + pucResponse[MBT_BYTE_COUNT_OFFSET];
 
 	return (usResponseLength);
 }//end ReadInputRegisters
