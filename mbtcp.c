@@ -25,7 +25,7 @@
  ******************************************************************************/
 #define MBT_PROTOCOL_ID                     0
 #define DEVICE_ID                           1
-#define MBAP_HEADER_LENGTH                  8
+#define MBAP_HEADER_LENGTH                  7
 //Modbus Application Protocol Header
 #define MBAP_TRANSACTION_ID_OFFSET          0
 #define MBAP_PROTOCOL_ID_OFFSET             2
@@ -181,7 +181,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 
 	switch (ucFunctionCode)
 	{
-#ifdef FC_READ_COILS_ENABLE
+#if FC_READ_COILS_ENABLE
 	case FC_READ_COILS:
 		if (!((usDataStartAddress >= m_ModbusData->usCoilsStartAddress) &&
 			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usNumOfCoils))))
@@ -191,7 +191,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 		break;
 #endif
 
-#ifdef FC_READ_DISCRETE_INPUTS_ENABLE
+#if FC_READ_DISCRETE_INPUTS_ENABLE
 	case FC_READ_DISCRETE_INPUTS:
 		if (!((usDataStartAddress >= m_ModbusData->usDiscreteInputStartAddress) &&
 			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData->usDiscreteInputStartAddress + m_ModbusData->usNumDiscreteInputs))))
@@ -201,7 +201,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 		break;
 #endif
 
-#ifdef FC_READ_HOLDING_REGISTERS_ENABLE
+#if FC_READ_HOLDING_REGISTERS_ENABLE
 	case FC_READ_HOLDING_REGISTERS:
 		if (!((usDataStartAddress >= m_ModbusData->usHoldingRegisterStartAddress) &&
 			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usNumOfHoldingRegisters))))
@@ -211,7 +211,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 		break;
 #endif
 
-#ifdef FC_READ_INPUT_REGISTERS_ENABLE
+#if FC_READ_INPUT_REGISTERS_ENABLE
 	case FC_READ_INPUT_REGISTERS:
 		if (!((usDataStartAddress >= m_ModbusData->usInputRegisterStartAddress) &&
 			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData->usInputRegisterStartAddress + m_ModbusData->usNumOfInputRegisters))))
@@ -221,7 +221,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 		break;
 #endif
 
-#ifdef FC_WRITE_COIL_ENABLE
+#if FC_WRITE_COIL_ENABLE
 	case FC_WRITE_COIL:
 		if (!((usDataStartAddress >= m_ModbusData->usCoilsStartAddress) &&
 			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usNumOfCoils))))
@@ -231,7 +231,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 		break;
 #endif
 
-#ifdef FC_WRITE_HOLDING_REGISTER_ENABLE
+#if FC_WRITE_HOLDING_REGISTER_ENABLE
 	case FC_WRITE_HOLDING_REGISTER:
 		if (!((usDataStartAddress >= m_ModbusData->usHoldingRegisterStartAddress) &&
 			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usNumOfHoldingRegisters))))
@@ -241,7 +241,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 		break;
 #endif
 
-#ifdef FC_WRITE_COILS_ENABLE
+#if FC_WRITE_COILS_ENABLE
 	case FC_WRITE_COILS:
 		if (!((usDataStartAddress >= m_ModbusData->usCoilsStartAddress) &&
 			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usNumOfCoils))))
@@ -251,7 +251,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 		break;
 #endif
 
-#ifdef FC_WRITE_HOLDING_REGISTERS_ENABLE
+#if FC_WRITE_HOLDING_REGISTERS_ENABLE
 	case FC_WRITE_HOLDING_REGISTERS:
 		if (!((usDataStartAddress >= m_ModbusData->usHoldingRegisterStartAddress) &&
 			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usNumOfHoldingRegisters))))
@@ -414,7 +414,7 @@ static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucRespon
     }//end while
 
 	//MBAP Header + Byte Count + data length
-	usResponseLength = MBT_DATA_VALUES_OFFSET + (usNumberOfData * 2);
+	usResponseLength = MBT_DATA_VALUES_OFFSET + pucResponse[MBT_BYTE_COUNT_OFFSET];
 
 	return (usResponseLength);
 }//end ReadHoldingRegisters
