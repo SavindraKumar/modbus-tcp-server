@@ -233,7 +233,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_WRITE_HOLDING_REGISTER_ENABLE
 	case FC_WRITE_HOLDING_REGISTER:
 		if (!((usDataStartAddress >= m_ModbusData->usHoldingRegisterStartAddress) &&
-			 ((usDataStartAddress + usNumberOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usNumOfHoldingRegisters))))
+			 (usDataStartAddress  <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usNumOfHoldingRegisters))))
 		{
 			ucException = ILLEGAL_DATA_ADDRESS;
 		}
@@ -396,8 +396,8 @@ static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucRespon
 
 	//UnitId(1 byte) + function code(1 byte) + Byte Count(1 byte) + (2 * Number of Data)
 	usPduLength = 3 + (usNumberOfData * 2);
-    //Copy MBAP Header into respone
-	memcpy(pucResponse, pucQuery, MBAP_HEADER_LENGTH);
+    //Copy MBAP Header and function code into respone
+	memcpy(pucResponse, pucQuery, (MBAP_HEADER_LENGTH + 1));
     //Modify Information in MBAP Header for response
 	pucResponse[MBAP_LENGTH_OFFSET]     = (uint16_t)(usPduLength << 8);
 	pucResponse[MBAP_LENGTH_OFFSET + 1] = (uint16_t)(usPduLength & 0xFF);
@@ -412,8 +412,8 @@ static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucRespon
 		usNumberOfData--;
     }//end while
 
-	//MBAP Header + Byte Count + data length
-	usResponseLength = MBT_DATA_VALUES_OFFSET + pucResponse[MBT_BYTE_COUNT_OFFSET];
+	//MBAP Header + function code(1 byte_ + Byte Count(1 byte) + data length
+	usResponseLength = MBAP_HEADER_LENGTH + 2 +  pucResponse[MBT_BYTE_COUNT_OFFSET];
 
 	return (usResponseLength);
 }//end ReadHoldingRegisters
@@ -442,8 +442,8 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
 
 	//UnitId(1 byte) + function code(1 byte) + Byte Count(1 byte) + (2 * Number of Data)
 	usPduLength = 3 + (usNumberOfData * 2);
-    //Copy MBAP Header into respone
-	memcpy(pucResponse, pucQuery, MBAP_HEADER_LENGTH);
+    //Copy MBAP Header and function code into respone
+	memcpy(pucResponse, pucQuery, (MBAP_HEADER_LENGTH + 1));
     //Modify Information in MBAP Header for response
 	pucResponse[MBAP_LENGTH_OFFSET]     = (uint16_t)(usPduLength << 8);
 	pucResponse[MBAP_LENGTH_OFFSET + 1] = (uint16_t)(usPduLength & 0xFF);
@@ -458,8 +458,8 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
 		usNumberOfData--;
     }//end while
 
-	//MBAP Header + Byte Count + data length
-	usResponseLength = MBT_DATA_VALUES_OFFSET + pucResponse[MBT_BYTE_COUNT_OFFSET];
+    //MBAP Header + function code(1 byte_ + Byte Count(1 byte) + data length
+	usResponseLength = MBAP_HEADER_LENGTH + 2 +  pucResponse[MBT_BYTE_COUNT_OFFSET];
 
 	return (usResponseLength);
 }//end ReadInputRegisters
@@ -492,14 +492,44 @@ static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
 static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
 	uint16_t usDataStartAddress  = 0;
-	uint16_t usNumberOfData      = 0;
+	uint16_t usRegisterValue     = 0;
+	uint16_t usPduLength         = 0;
+	uint16_t usStartAddress      = 0;
+	uint16_t usResponseLength    = 0;
 
 	usDataStartAddress  = (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
 	usDataStartAddress |= (uint16_t) (pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
-	usNumberOfData      = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
-	usNumberOfData     |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+	usRegisterValue     = (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
+	usRegisterValue    |= (uint16_t) (pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
 
-	return 0;
+	usStartAddress = (usDataStartAddress - m_ModbusData->usHoldingRegisterStartAddress);
+
+	if ((m_ModbusData->psHoldingRegisterHigherLimit[usStartAddress] >= (int16_t)usRegisterValue) &&
+	    (m_ModbusData->psHoldingRegisterLowerLimit[usStartAddress] <= (int16_t)usRegisterValue))
+	{
+		m_ModbusData->psHoldingRegisters[usStartAddress] = usRegisterValue;
+
+	    //Copy same data in response as received in query
+		//MBAP Header + function code(1 byte) + start address( 2 byte) +
+		//Register value(2 byte)
+	    memcpy(pucResponse, pucQuery, (MBAP_HEADER_LENGTH + 5));
+
+		usResponseLength = MBAP_HEADER_LENGTH + 5;
+	}
+	else
+	{
+		//UnitId(1 byte) + Error Code(1 byte) + Exception Code(1 byte)
+		usPduLength = 3;
+
+		pucResponse[MBAP_LENGTH_OFFSET]       = (uint16_t)(usPduLength << 8);
+		pucResponse[MBAP_LENGTH_OFFSET + 1]   = (uint16_t)(usPduLength & 0xFF);
+	    pucResponse[MBT_FUNCTION_CODE_OFFSET] = 0x80 + pucQuery[MBT_FUNCTION_CODE_OFFSET];
+        pucResponse[8]                        = ILLEGAL_DATA_VALUE;
+
+		usResponseLength = MBT_EXCEPTION_PACKET_LENGTH;
+	}
+
+	return usResponseLength;
 }//end WriteSingleHoldingRegister
 
 /** @brief Read Write Multiple Coils into Modbus data
