@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 //user defined header files
+#include "mbtcpconf.h"
 #include "mbtcp.h"
 
 /******************************************************************************
