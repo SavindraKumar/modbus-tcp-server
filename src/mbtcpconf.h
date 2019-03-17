@@ -10,8 +10,8 @@
 //! @bug No known bugs.
 //
 //****************************************************************************
-#ifndef _MBTCPCONF_H
-#define _MBTCPCONF_H
+#ifndef MBTCPCONF_H
+#define MBTCPCONF_H
 
 //****************************************************************************
 //                           Includes
@@ -73,7 +73,7 @@ void mbtcp_DataInit (const ModbusData_t *ModbusData);
 uint16_t mbtcp_ProcessRequest (const uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse);
 
 
-#endif // _MBTCPCONF_H
+#endif // MBTCPCONF_H
 //****************************************************************************
 //                             End of file
 //****************************************************************************
