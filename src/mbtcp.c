@@ -1,28 +1,28 @@
-/** @addtogroup ModbusTCP
- *  @brief Modbus TCP Application
- *  @{
- */
-/*****************************************************************************/
-/** @file mbtcp.c
- *  @brief Modbus TCP Application source file
- *  @author Savindra Kumar(savindran1989@gmail.com)
- *  @bug No known bugs.
- */
-/*****************************************************************************/
-/******************************************************************************
- *                           Includes
- *****************************************************************************/
+//! @addtogroup ModbusTCP
+//! @brief Modbus TCP Application
+//! @{
+//!
+//****************************************************************************/
+//! @file mbtcp.c
+//! @brief Modbus TCP Application source file
+//! @author Savindra Kumar(savindran1989@gmail.com)
+//! @bug No known bugs.
+//!
+//****************************************************************************/
+//****************************************************************************/
+//                           Includes
+//****************************************************************************/
 //standard header files
-#include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 //user defined header files
 #include "mbtcpconf.h"
 #include "mbtcp.h"
 
-/******************************************************************************
- *                           Defines and typedefs
- *****************************************************************************/
+//****************************************************************************/
+//                           Defines and typedefs
+//****************************************************************************/
 #define MBT_PROTOCOL_ID                     0
 #define DEVICE_ID                           1
 #define MBAP_HEADER_LENGTH                  7
@@ -42,9 +42,9 @@
 #define MBT_MAX_PDU_LENGTH                  256
 #define MBT_EXCEPTION_PACKET_LENGTH         9
 
-/******************************************************************************
- *                           Private Functions
- *****************************************************************************/
+//****************************************************************************/
+//                           Private Functions
+//****************************************************************************/
 static uint16_t HandleRequest (const uint8_t *pucQuery, uint8_t *pucResponse);
 static uint8_t ValidateFunctionCodeAndDataAddress (const uint8_t *pucQuery);
 static bool BasicValidation (const uint8_t *pucQuery);
@@ -58,34 +58,36 @@ static uint16_t WriteMultipleCoils (const uint8_t *pucQuery, uint8_t *pucRespons
 static uint16_t WriteMultipleHoldingRegisters (const uint8_t *pucQuery, uint8_t *pucResponse);
 static uint16_t BuildExceptionPacket (const uint8_t *pucQuery, uint8_t ucException, uint8_t *pucResponse);
 
-/******************************************************************************
- *                           external variables
- *****************************************************************************/
+//****************************************************************************/
+//                           external variables
+//****************************************************************************/
 
-/******************************************************************************
- *                           Private variables
- *****************************************************************************/
+//****************************************************************************/
+//                           Private variables
+//****************************************************************************/
 static const ModbusData_t *m_ModbusData = NULL;
 
-/******************************************************************************
- *                    G L O B A L  F U N C T I O N S
- *****************************************************************************/
-/** @brief Intialise Modbus Data
- *  @param[in]  ModbusData  Modbus data structure
- *  @return     None
- */
+//****************************************************************************/
+//                    G L O B A L  F U N C T I O N S
+//****************************************************************************/
+//
+//! @brief Intialise Modbus Data
+//! @param[in]  ModbusData  Modbus data structure
+//! @return     None
+//
 void MBT_DataInit(const ModbusData_t *ModbusData)
 {
     m_ModbusData = ModbusData;
 
 } //end MBT_DataInit
 
-/** @brief Process Modbus TCP Application request
- *  @param[in]   pucQuery      Pointer to Modbus TCP Query buffer
- *  @param[in]   ucQueryLength Modbus TCP Query Length
- *  @param[out]  pucResponse   Pointer to Modbus TCP Response buffer
- *  @return      uint16_t      Modbus TCP Response Length
- */
+//
+//! @brief Process Modbus TCP Application request
+//! @param[in]   pucQuery      Pointer to Modbus TCP Query buffer
+//! @param[in]   ucQueryLength Modbus TCP Query Length
+//! @param[out]  pucResponse   Pointer to Modbus TCP Response buffer
+//! @return      uint16_t      Modbus TCP Response Length
+//
 uint16_t MBT_ProcessRequest(const uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse)
 {
     uint16_t pusResponseLength = 0;
@@ -116,11 +118,12 @@ uint16_t MBT_ProcessRequest(const uint8_t *pucQuery, uint8_t ucQueryLength, uint
 /******************************************************************************
  *                           L O C A L  F U N C T I O N S
  *****************************************************************************/
-/** @brief Validate protocol id, uint id and pdu length
- *  @param[in] pucQuery Pointer to modbus query buffer
- *  @parm[out] None
- *  @return    bool true - Validation ok, false - Validate not ok
- */
+//
+//! @brief Validate protocol id, uint id and pdu length
+//! @param[in] pucQuery Pointer to modbus query buffer
+//! @parm[out] None
+//! @return    bool true - Validation ok, false - Validate not ok
+//
 static bool BasicValidation(const uint8_t *pucQuery)
 {
     uint16_t usProtocolId = 0;
@@ -156,11 +159,12 @@ static bool BasicValidation(const uint8_t *pucQuery)
     return (bStatus);
 }//end BasicValidation
 
-/** @brief Validate function code and data address in modbus query
- *  @param[in]  pucQuery Pointer to modbus query buffer
- *  @param[out] None
- *  @return     uint8_t 0 - NoException, nonzero - Exception
- */
+//
+//! @brief Validate function code and data address in modbus query
+//! @param[in]  pucQuery Pointer to modbus query buffer
+//! @param[out] None
+//! @return     uint8_t 0 - NoException, nonzero - Exception
+//
 static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 {
     uint8_t  ucFunctionCode     = 0;
@@ -266,11 +270,12 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
     return (ucException);
 }//end ValidateFunctionCodeAndDataAddress
 
-/** @brief Handle Modbus Request after function code data adddress validated successfully
- *  @param[in]    pucQuery         Pointer to modbus query buffer
- *  @param[out]   pucResponse      Pointer to modbus response buffer
- *  @return       uint16_t         ResponeLength
- */
+//
+//! @brief Handle Modbus Request after function code data adddress validated successfully
+//! @param[in]    pucQuery         Pointer to modbus query buffer
+//! @param[out]   pucResponse      Pointer to modbus response buffer
+//! @return       uint16_t         ResponeLength
+//
 static uint16_t HandleRequest(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint8_t  ucFunctionCode   = 0;
@@ -313,12 +318,13 @@ static uint16_t HandleRequest(const uint8_t *pucQuery, uint8_t *pucResponse)
     return (usResponseLength);
 }//end HandleRequest
 
-/** @brief Build Exception Packet
- *  @param[in]    pucQuery     Pointer to modbus query buffer
- *  @param[in]    ucException  Exception type
- *  @param[out]   pucResponse  Pointer to modbus response buffer
- *  @return       uint16_t     Response Length
- */
+//
+//! @brief Build Exception Packet
+//! @param[in]    pucQuery     Pointer to modbus query buffer
+//! @param[in]    ucException  Exception type
+//! @param[out]   pucResponse  Pointer to modbus response buffer
+//! @return       uint16_t     Response Length
+//
 static uint16_t BuildExceptionPacket(const uint8_t *pucQuery, uint8_t ucException, uint8_t *pucResponse)
 {
     memcpy(pucResponse, pucQuery, MBAP_HEADER_LENGTH);
@@ -331,11 +337,12 @@ static uint16_t BuildExceptionPacket(const uint8_t *pucQuery, uint8_t ucExceptio
     return (MBT_EXCEPTION_PACKET_LENGTH);
 }//end BuildExceptionPacket
 
-/** @brief Read Coils from Modbus data
- *  @param[in]  pucQuery    Pointer to modbus query buffer
- *  @param[out] pucResponse Pointer to modbus response buffer
- *  @return     uint16_t    Response Length
- */
+//
+//! @brief Read Coils from Modbus data
+//! @param[in]  pucQuery    Pointer to modbus query buffer
+//! @param[out] pucResponse Pointer to modbus response buffer
+//! @return     uint16_t    Response Length
+//
 static uint16_t ReadCoils(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
@@ -349,12 +356,12 @@ static uint16_t ReadCoils(const uint8_t *pucQuery, uint8_t *pucResponse)
     return 0;
 }//end ReadCoils
 
-/** @brief Read Discrete Inputs from Modbus data
- *  @param[in]   pucQuery   Pointer  to modbus query buffer
- *  @param[out]  pucResponse Pointer to modbus response buffer
- *  @return      uint16_t    Response Length
- *
- */
+//
+//! @brief Read Discrete Inputs from Modbus data
+//! @param[in]   pucQuery   Pointer  to modbus query buffer
+//! @param[out]  pucResponse Pointer to modbus response buffer
+//! @return      uint16_t    Response Length
+//
 static uint16_t ReadDiscreteInputs(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
@@ -368,12 +375,12 @@ static uint16_t ReadDiscreteInputs(const uint8_t *pucQuery, uint8_t *pucResponse
     return 0;
 }//end ReadDiscreteInputs
 
-/** @brief Read Holding Registers from Modbus data
- *  @param[in]   pucQuery   Pointer  to modbus query buffer
- *  @param[out]  pucResponse Pointer to modbus response buffer
- *  @return      uint16_t    Response Length
- *
- */
+//
+//! @brief Read Holding Registers from Modbus data
+//! @param[in]   pucQuery   Pointer  to modbus query buffer
+//! @param[out]  pucResponse Pointer to modbus response buffer
+//! @return      uint16_t    Response Length
+//
 static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
@@ -415,12 +422,12 @@ static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucRespon
     return (usResponseLength);
 }//end ReadHoldingRegisters
 
-/** @brief Read Input Registers from Modbus data
- *  @param[in]   pucQuery   Pointer  to modbus query buffer
- *  @param[out]  pucResponse Pointer to modbus response buffer
- *  @return      uint16_t    Response Length
- *
- */
+//
+//! @brief Read Input Registers from Modbus data
+//! @param[in]   pucQuery   Pointer  to modbus query buffer
+//! @param[out]  pucResponse Pointer to modbus response buffer
+//! @return      uint16_t    Response Length
+//
 static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
@@ -462,12 +469,12 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
     return (usResponseLength);
 }//end ReadInputRegisters
 
-/** @brief Read Write Single Coil into Modbus data
- *  @param[in]   pucQuery   Pointer  to modbus query buffer
- *  @param[out]  pucResponse Pointer to modbus response buffer
- *  @return      uint16_t    Response Length
- *
- */
+//
+//! @brief Read Write Single Coil into Modbus data
+//! @param[in]   pucQuery   Pointer  to modbus query buffer
+//! @param[out]  pucResponse Pointer to modbus response buffer
+//! @return      uint16_t    Response Length
+//
 static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
@@ -481,12 +488,12 @@ static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
     return 0;
 }//end WriteSingleCoil
 
-/** @brief Read Write Single Holding Register into Modbus data
- *  @param[in]   pucQuery   Pointer  to modbus query buffer
- *  @param[out]  pucResponse Pointer to modbus response buffer
- *  @return      uint16_t    Response Length
- *
- */
+//
+//! @brief Read Write Single Holding Register into Modbus data
+//! @param[in]   pucQuery   Pointer  to modbus query buffer
+//! @param[out]  pucResponse Pointer to modbus response buffer
+//! @return      uint16_t    Response Length
+//
 static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
@@ -527,12 +534,12 @@ static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *puc
     return usResponseLength;
 }//end WriteSingleHoldingRegister
 
-/** @brief Read Write Multiple Coils into Modbus data
- *  @param[in]   pucQuery   Pointer  to modbus query buffer
- *  @param[out]  pucResponse Pointer to modbus response buffer
- *  @return      uint16_t    Response Length
- *
- */
+//
+//! @brief Read Write Multiple Coils into Modbus data
+//! @param[in]   pucQuery   Pointer  to modbus query buffer
+//! @param[out]  pucResponse Pointer to modbus response buffer
+//! @return      uint16_t    Response Length
+//
 static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
@@ -546,12 +553,12 @@ static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse
     return 0;
 }//end WriteMultipleCoils
 
-/** @brief Read Write Multiple Holding Registers into Modbus data
- *  @param[in]   pucQuery   Pointer  to modbus query buffer
- *  @param[out]  pucResponse Pointer to modbus response buffer
- *  @return      uint16_t    Response Length
- *
- */
+//
+//! @brief Read Write Multiple Holding Registers into Modbus data
+//! @param[in]   pucQuery   Pointer  to modbus query buffer
+//! @param[out]  pucResponse Pointer to modbus response buffer
+//! @return      uint16_t    Response Length
+//
 static uint16_t WriteMultipleHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
