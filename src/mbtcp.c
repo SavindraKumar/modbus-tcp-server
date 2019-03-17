@@ -1,5 +1,5 @@
 //! @addtogroup ModbusTCP
-//! @brief Modbus TCP Application
+//! @brief Modbus TCP application
 //! @{
 //!
 //****************************************************************************/
@@ -23,25 +23,41 @@
 //****************************************************************************/
 //                           Defines and typedefs
 //****************************************************************************/
-#define MBT_PROTOCOL_ID                     0
-#define DEVICE_ID                           1
-#define MBAP_HEADER_LENGTH                  7
-//Modbus Application Protocol Header
-#define MBAP_TRANSACTION_ID_OFFSET          0
-#define MBAP_PROTOCOL_ID_OFFSET             2
-#define MBAP_LENGTH_OFFSET                  4
-#define MBAP_UNIT_ID_OFFSET                 6
-//PDU Offset in query
-#define MBT_FUNCTION_CODE_OFFSET            7
-#define MBT_DATA_START_ADDRESS_OFFSET       8
-#define MBT_NO_OF_DATA_OFFSET               10
-//PDU Offset in response
-#define MBT_BYTE_COUNT_OFFSET               8
-#define MBT_DATA_VALUES_OFFSET              9
+#define MBT_PROTOCOL_ID                             (0u)
+#define DEVICE_ID                                   (1u)
 
-#define MBT_MAX_PDU_LENGTH                  256
-#define MBT_EXCEPTION_PACKET_LENGTH         9
+//Modbus application protocol header
+#define MBAP_HEADER_LENGTH                          (7u)
+#define MBAP_TRANSACTION_ID_OFFSET                  (0u)
+#define MBAP_PROTOCOL_ID_OFFSET                     (2u)
+#define MBAP_LENGTH_OFFSET                          (4u)
+#define MBAP_UNIT_ID_OFFSET                         (6u)
+//PDU offset in query for multiple read/write
+#define MBT_FUNCTION_CODE_OFFSET                    (7u)
+#define MBT_DATA_START_ADDRESS_OFFSET               (8u)
+#define MBT_NO_OF_DATA_OFFSET                       (10u)
+//PDU offset in response
+#define MBT_BYTE_COUNT_OFFSET                       (8u)
+#define MBT_DATA_VALUES_OFFSET                      (9u)
+//write single holding register
+//function code(1 byte) + start address( 2 bytes) + Register value(2 bytes) = 5 bytes
+#define MBT_WRITE_SINGLE_REGISTER_RESPONSE_LENGTH   (MBAP_HEADER_LENGTH + 5)
+#define MBT_REGISTER_VALUE_OFFSET                   (10u)
+//Exception packet offset in response
+#define MBT_EXCEPTION_FUNCTION_CODE_OFFSET          (7u)
+#define MBT_EXCEPTION_TYPE_OFFSET                   (8u)
+//Unit Id(1 byte) + Error Code(1 byte) + Exception Code(1 byte) = 2 bytes
+#define MBAP_LENGTH_IN_EXCEPTION_PACKET             (3u)
+//Error Code(1 byte) + Exception Code(1 byte) = 2 bytes
+#define MBT_EXCEPTION_PACKET_LENGTH                 (MBAP_HEADER_LENGTH + 2)
+#define MBT_MAX_PDU_LENGTH                          (256u)
 
+//UnitId(1 byte) + function code(1 byte) + Byte Count(1 byte) + (2 * Number of Data)
+#define MBAP_LENGTH_READ_INPUT_REGISTERS(usNumberOfData)           (3 + usNumberOfData * 2)
+#define MBAP_LENGTH_READ_HOLDING_REGISTERS(usNumberOfData)         (3 + usNumberOfData * 2)
+//MBAP Header + function code(1 byte) + Byte Count(1 byte) + 2 * Number of Data
+#define MBT_READ_INPUT_REGISTERS_RESPONSE_LENGTH(usNumberOfData)   (MBAP_HEADER_LENGTH + 2 + usNumberOfData * 2)
+#define MBT_READ_HOLDING_REGISTERS_RESPONSE_LENGTH(usNumberOfData) (MBAP_HEADER_LENGTH + 2 + usNumberOfData * 2)
 //****************************************************************************/
 //                           Private Functions
 //****************************************************************************/
@@ -79,7 +95,7 @@ void mbtcp_DataInit(const ModbusData_t *ModbusData)
 {
     m_ModbusData = ModbusData;
 
-} //end MBT_DataInit
+}//end mbtcp_DataInit
 
 //
 //! @brief Process Modbus TCP Application request
@@ -90,30 +106,30 @@ void mbtcp_DataInit(const ModbusData_t *ModbusData)
 //
 uint16_t mbtcp_ProcessRequest(const uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse)
 {
-    uint16_t pusResponseLength = 0;
-    uint8_t  ucException       = 0;
-    bool     bStatus           = false;
+    uint16_t usResponseLength = 0;
+    uint8_t  ucException      = 0;
+    bool     bIsQueryOk       = false;
 
-    bStatus = BasicValidation(pucQuery);
+    bIsQueryOk = BasicValidation(pucQuery);
 
     //If Protocol Id, Pdu length or Unit Id validated sucessfully
     //Proceed for next validation steps
-    if (bStatus)
+    if (bIsQueryOk)
     {
         ucException = ValidateFunctionCodeAndDataAddress(pucQuery);
 
         if (ucException)
         {
-            pusResponseLength = BuildExceptionPacket(pucQuery, ucException, pucResponse);
+            usResponseLength = BuildExceptionPacket(pucQuery, ucException, pucResponse);
         }
         else
         {
-            pusResponseLength = HandleRequest(pucQuery, pucResponse);
+            usResponseLength = HandleRequest(pucQuery, pucResponse);
         }
     }//end if
 
-    return (pusResponseLength);
-}//end MB_ProcessRequest
+    return (usResponseLength);
+}//end mbtcp_ProcessRequest
 
 /******************************************************************************
  *                           L O C A L  F U N C T I O N S
@@ -129,7 +145,7 @@ static bool BasicValidation(const uint8_t *pucQuery)
     uint16_t usProtocolId = 0;
     uint16_t usPdulength  = 0;
     uint8_t  ucUnitId     = 0;
-    bool     bStatus       = true;
+    bool     bIsQueryOk   = true;
 
     //Modbus Application Protocol(MBAP) Header Information
     usProtocolId  = (uint16_t)(pucQuery[MBAP_PROTOCOL_ID_OFFSET] << 8);
@@ -141,22 +157,22 @@ static bool BasicValidation(const uint8_t *pucQuery)
     //check for Modbus TCP/IP protocol
     if (MBT_PROTOCOL_ID != usProtocolId)
     {
-        bStatus = false;
+        bIsQueryOk = false;
     }
 
     //check if pdu length exceed
     if (usPdulength > MBT_MAX_PDU_LENGTH)
     {
-        bStatus = false;
+        bIsQueryOk = false;
     }
 
     //check for Unit Id
     if (DEVICE_ID != ucUnitId)
     {
-        bStatus = false;
+        bIsQueryOk = false;
     }
 
-    return (bStatus);
+    return (bIsQueryOk);
 }//end BasicValidation
 
 //
@@ -265,7 +281,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
     default:
         ucException = ILLEGAL_FUNCTION_CODE;
         break;
-    }	//end switch
+    }//end switch
 
     return (ucException);
 }//end ValidateFunctionCodeAndDataAddress
@@ -328,11 +344,12 @@ static uint16_t HandleRequest(const uint8_t *pucQuery, uint8_t *pucResponse)
 static uint16_t BuildExceptionPacket(const uint8_t *pucQuery, uint8_t ucException, uint8_t *pucResponse)
 {
     memcpy(pucResponse, pucQuery, MBAP_HEADER_LENGTH);
+
     //Modify information for response
-    pucResponse[MBAP_LENGTH_OFFSET]       = 0;
-    pucResponse[MBAP_LENGTH_OFFSET + 1]   = 3;
-    pucResponse[MBT_FUNCTION_CODE_OFFSET] = 0x80 + pucQuery[MBT_FUNCTION_CODE_OFFSET];
-    pucResponse[8]                        = ucException;
+    pucResponse[MBAP_LENGTH_OFFSET]                 = 0;
+    pucResponse[MBAP_LENGTH_OFFSET + 1]             = MBAP_LENGTH_IN_EXCEPTION_PACKET;
+    pucResponse[MBT_EXCEPTION_FUNCTION_CODE_OFFSET] = 0x80 + pucQuery[MBT_FUNCTION_CODE_OFFSET];
+    pucResponse[MBT_EXCEPTION_TYPE_OFFSET]          = ucException;
 
     return (MBT_EXCEPTION_PACKET_LENGTH);
 }//end BuildExceptionPacket
@@ -396,8 +413,7 @@ static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucRespon
     usNumberOfData     |= (uint16_t)(pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
 
     usStartAddress = (usDataStartAddress - m_ModbusData->usHoldingRegisterStartAddress);
-    //UnitId(1 byte) + function code(1 byte) + Byte Count(1 byte) + (2 * Number of Data)
-    usPduLength    = 3 + (usNumberOfData * 2);
+    usPduLength    = MBAP_LENGTH_READ_INPUT_REGISTERS(usNumberOfData);
 
     //Copy MBAP Header and function code into respone
     memcpy(pucResponse, pucQuery, (MBAP_HEADER_LENGTH + 1));
@@ -408,6 +424,8 @@ static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucRespon
     pucResponse[MBT_BYTE_COUNT_OFFSET]  = (uint8_t)(usNumberOfData * 2);
     pucRegBuffer                        = &pucResponse[MBT_DATA_VALUES_OFFSET];
 
+    usResponseLength = MBT_READ_HOLDING_REGISTERS_RESPONSE_LENGTH(usNumberOfData);
+
     while (usNumberOfData > 0)
     {
         *pucRegBuffer++ = (uint8_t)(m_ModbusData->psHoldingRegisters[usStartAddress] >> 8);
@@ -415,9 +433,6 @@ static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucRespon
         usStartAddress++;
         usNumberOfData--;
     }
-
-    //MBAP Header + function code(1 byte) + Byte Count(1 byte) + data length
-    usResponseLength = MBAP_HEADER_LENGTH + 2 + pucResponse[MBT_BYTE_COUNT_OFFSET];
 
     return (usResponseLength);
 }//end ReadHoldingRegisters
@@ -432,7 +447,7 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
 {
     uint16_t usDataStartAddress = 0;
     uint16_t usNumberOfData     = 0;
-    uint16_t usPduLength        = 0;
+    uint16_t usMbapLength       = 0;
     uint16_t usStartAddress     = 0;
     uint16_t usResponseLength   = 0;
     uint8_t  *pucRegBuffer      = NULL;
@@ -443,17 +458,18 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
     usNumberOfData     |= (uint16_t)(pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
 
     usStartAddress = (usDataStartAddress - m_ModbusData->usInputRegisterStartAddress);
-    //UnitId(1 byte) + function code(1 byte) + Byte Count(1 byte) + (2 * Number of Data)
-    usPduLength    = 3 + (usNumberOfData * 2);
+    usMbapLength   = MBAP_LENGTH_READ_INPUT_REGISTERS(usNumberOfData);
 
-    //Copy MBAP Header and function code into respone
+    //Copy MBAP Header and function code into response
     memcpy(pucResponse, pucQuery, (MBAP_HEADER_LENGTH + 1));
 
     //Modify Information in MBAP Header for response
-    pucResponse[MBAP_LENGTH_OFFSET]     = (uint16_t)(usPduLength << 8);
-    pucResponse[MBAP_LENGTH_OFFSET + 1] = (uint16_t)(usPduLength & 0xFF);
+    pucResponse[MBAP_LENGTH_OFFSET]     = (uint16_t)(usMbapLength << 8);
+    pucResponse[MBAP_LENGTH_OFFSET + 1] = (uint16_t)(usMbapLength & 0xFF);
     pucResponse[MBT_BYTE_COUNT_OFFSET]  = (uint8_t)(usNumberOfData * 2);
     pucRegBuffer                        = &pucResponse[MBT_DATA_VALUES_OFFSET];
+
+    usResponseLength = MBT_READ_INPUT_REGISTERS_RESPONSE_LENGTH(usNumberOfData);
 
     while (usNumberOfData > 0)
     {
@@ -462,9 +478,6 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
         usStartAddress++;
         usNumberOfData--;
     }
-
-    //MBAP Header + function code(1 byte_ + Byte Count(1 byte) + data length
-    usResponseLength = MBAP_HEADER_LENGTH + 2 + pucResponse[MBT_BYTE_COUNT_OFFSET];
 
     return (usResponseLength);
 }//end ReadInputRegisters
@@ -504,31 +517,27 @@ static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *puc
 
     usDataStartAddress  = (uint16_t)(pucQuery[MBT_DATA_START_ADDRESS_OFFSET] << 8);
     usDataStartAddress |= (uint16_t)(pucQuery[MBT_DATA_START_ADDRESS_OFFSET + 1]);
-    usRegisterValue     = (uint16_t)(pucQuery[MBT_NO_OF_DATA_OFFSET] << 8);
-    usRegisterValue    |= (uint16_t)(pucQuery[MBT_NO_OF_DATA_OFFSET + 1]);
+    usRegisterValue     = (uint16_t)(pucQuery[MBT_REGISTER_VALUE_OFFSET] << 8);
+    usRegisterValue    |= (uint16_t)(pucQuery[MBT_REGISTER_VALUE_OFFSET + 1]);
 
     usStartAddress = usDataStartAddress - m_ModbusData->usHoldingRegisterStartAddress;
 
     if ((m_ModbusData->psHoldingRegisterHigherLimit[usStartAddress] >= (int16_t) usRegisterValue) &&
-        (m_ModbusData->psHoldingRegisterLowerLimit[usStartAddress]<= (int16_t) usRegisterValue))
+        (m_ModbusData->psHoldingRegisterLowerLimit[usStartAddress] <= (int16_t) usRegisterValue))
     {
         m_ModbusData->psHoldingRegisters[usStartAddress] = usRegisterValue;
         //Copy same data in response as received in query
-        //MBAP Header + function code(1 byte) + start address( 2 byte) +
-        //Register value(2 byte)
-        memcpy(pucResponse, pucQuery, (MBAP_HEADER_LENGTH + 5));
-        usResponseLength = MBAP_HEADER_LENGTH + 5;
+        usResponseLength = MBT_WRITE_SINGLE_REGISTER_RESPONSE_LENGTH;
+        memcpy(pucResponse, pucQuery, usResponseLength);
     }
     else
     {
-        //UnitId(1 byte) + Error Code(1 byte) + Exception Code(1 byte)
-        usPduLength = 3;
-
-        pucResponse[MBAP_LENGTH_OFFSET]       = (uint16_t)(usPduLength << 8);
-        pucResponse[MBAP_LENGTH_OFFSET + 1]   = (uint16_t)(usPduLength & 0xFF);
-        pucResponse[MBT_FUNCTION_CODE_OFFSET] = 0x80 + pucQuery[MBT_FUNCTION_CODE_OFFSET];
-        pucResponse[8]                        = ILLEGAL_DATA_VALUE;
-        usResponseLength                      = MBT_EXCEPTION_PACKET_LENGTH;
+        usPduLength                                     = MBAP_LENGTH_IN_EXCEPTION_PACKET;
+        pucResponse[MBAP_LENGTH_OFFSET]                 = (uint16_t)(usPduLength << 8);
+        pucResponse[MBAP_LENGTH_OFFSET + 1]             = (uint16_t)(usPduLength & 0xFF);
+        pucResponse[MBT_EXCEPTION_FUNCTION_CODE_OFFSET] = 0x80 + pucQuery[MBT_FUNCTION_CODE_OFFSET];
+        pucResponse[MBT_EXCEPTION_TYPE_OFFSET]          = ILLEGAL_DATA_VALUE;
+        usResponseLength                                = MBT_EXCEPTION_PACKET_LENGTH;
     }
 
     return usResponseLength;
