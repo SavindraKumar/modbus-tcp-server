@@ -47,12 +47,12 @@
 //                    G L O B A L  F U N C T I O N S
 //****************************************************************************/
 //
-//! @brief Initalise TCP Server Socke and Call Modbus Application
+//! @brief Initalise TCP Server Socket and Call Modbus Application
 //! @param[in]  None
 //! @param[out] None
 //! @return     None
 //
-void TcpInit(void)
+void tcp_Init(void)
 {
     uint8_t pucQuery[BUFF_SIZE_IN_BYTES];
     uint8_t pucResponse[BUFF_SIZE_IN_BYTES];
@@ -116,7 +116,7 @@ void TcpInit(void)
             exit(1);
         }
 
-        usResponseLength = MBT_ProcessRequest(pucQuery, sReturn, pucResponse);
+        usResponseLength = mbtcp_ProcessRequest(pucQuery, sReturn, pucResponse);
 
         if (0 != usResponseLength)
         {

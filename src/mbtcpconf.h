@@ -44,7 +44,7 @@ typedef struct
 //!Enable or Disable Read Discrete Inputs Function Code
 #define MBTP_CONF_FC_READ_DISCRETE_INPUTS_ENABLE     0
 
-//! or Disable Read Holding Registers Function Code
+//!Enable or Disable Read Holding Registers Function Code
 #define MBTP_CONF_FC_READ_HOLDING_REGISTERS_ENABLE   1
 
 //!Enable or Disable Read Input Registers Function Code
@@ -69,8 +69,8 @@ typedef struct
 //****************************************************************************
 //                           Global Functions
 //****************************************************************************
-void MBT_DataInit (const ModbusData_t *ModbusData);
-uint16_t MBT_ProcessRequest (const uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse);
+void mbtcp_DataInit (const ModbusData_t *ModbusData);
+uint16_t mbtcp_ProcessRequest (const uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse);
 
 
 #endif // _MBTCPCONF_H

@@ -57,8 +57,8 @@ int main(void)
     ModbusData.usInputRegisterStartAddress = INPUT_REGISTER_START_ADDRESS;
     ModbusData.usNumOfInputRegisters       = NUMBER_OF_INPUT_REGISTERS;
 
-    MBT_DataInit(&ModbusData);
-    TcpInit();
+    mbtcp_DataInit(&ModbusData);
+    tcp_Init();
 
     return 0;
 }//end main

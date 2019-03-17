@@ -75,7 +75,7 @@ static const ModbusData_t *m_ModbusData = NULL;
 //! @param[in]  ModbusData  Modbus data structure
 //! @return     None
 //
-void MBT_DataInit(const ModbusData_t *ModbusData)
+void mbtcp_DataInit(const ModbusData_t *ModbusData)
 {
     m_ModbusData = ModbusData;
 
@@ -88,7 +88,7 @@ void MBT_DataInit(const ModbusData_t *ModbusData)
 //! @param[out]  pucResponse   Pointer to Modbus TCP Response buffer
 //! @return      uint16_t      Modbus TCP Response Length
 //
-uint16_t MBT_ProcessRequest(const uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse)
+uint16_t mbtcp_ProcessRequest(const uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse)
 {
     uint16_t pusResponseLength = 0;
     uint8_t  ucException       = 0;
