@@ -70,7 +70,7 @@ typedef struct
 //                           Global Functions
 //****************************************************************************
 void mbtcp_DataInit (const ModbusData_t *ModbusData);
-uint16_t mbtcp_ProcessRequest (const uint8_t *pucQuery, uint8_t ucQueryLength, uint8_t *pucResponse);
+uint16_t mbtcp_ProcessRequest (const uint8_t *pucQuery, uint8_t ucQueryLen, uint8_t *pucResponse);
 
 
 #endif // MBTCPCONF_H
