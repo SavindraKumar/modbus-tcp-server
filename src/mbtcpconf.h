@@ -42,7 +42,7 @@ typedef struct
 #define MBT_CONF_FC_READ_COILS_ENABLE               0
 
 //!Enable or Disable Read Discrete Inputs Function Code
-#define MBT_CONF_FC_READ_DISCRETE_INPUTS_ENABLE     0
+#define MBT_CONF_FC_READ_DISCRETE_INPUTS_ENABLE     1
 
 //!Enable or Disable Read Holding Registers Function Code
 #define MBT_CONF_FC_READ_HOLDING_REGISTERS_ENABLE   1
