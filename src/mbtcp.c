@@ -206,7 +206,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_READ_COILS_ENABLE
     case FC_READ_COILS:
         if (!((usDataStartAddress >= m_ModbusData->usCoilsStartAddress) &&
-             ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usNumOfCoils))))
+             ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usMaxCoils))))
         {
             ucException = ILLEGAL_DATA_ADDRESS;
         }
@@ -216,7 +216,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_READ_DISCRETE_INPUTS_ENABLE
     case FC_READ_DISCRETE_INPUTS:
         if (!((usDataStartAddress >= m_ModbusData->usDiscreteInputStartAddress) &&
-             ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usDiscreteInputStartAddress + m_ModbusData->usNumDiscreteInputs))))
+             ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usDiscreteInputStartAddress + m_ModbusData->usMaxDiscreteInputs))))
         {
             ucException = ILLEGAL_DATA_ADDRESS;
         }
@@ -226,7 +226,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_READ_HOLDING_REGISTERS_ENABLE
     case FC_READ_HOLDING_REGISTERS:
         if (!((usDataStartAddress >= m_ModbusData->usHoldingRegisterStartAddress) &&
-             ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usNumOfHoldingRegisters))))
+             ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usMaxHoldingRegisters))))
         {
             ucException = ILLEGAL_DATA_ADDRESS;
         }
@@ -236,7 +236,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_READ_INPUT_REGISTERS_ENABLE
     case FC_READ_INPUT_REGISTERS:
         if (!((usDataStartAddress >= m_ModbusData->usInputRegisterStartAddress) &&
-             ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usInputRegisterStartAddress + m_ModbusData->usNumOfInputRegisters))))
+             ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usInputRegisterStartAddress + m_ModbusData->usMaxInputRegisters))))
 
         {
             ucException = ILLEGAL_DATA_ADDRESS;
@@ -257,7 +257,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_WRITE_HOLDING_REGISTER_ENABLE
         case FC_WRITE_HOLDING_REGISTER:
             if (!((usDataStartAddress >= m_ModbusData->usHoldingRegisterStartAddress) &&
-                 (usDataStartAddress <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usNumOfHoldingRegisters))))
+                 (usDataStartAddress <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usMaxHoldingRegisters))))
             {
                 ucException = ILLEGAL_DATA_ADDRESS;
             }
@@ -267,7 +267,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_WRITE_COILS_ENABLE
         case FC_WRITE_COILS:
             if (!((usDataStartAddress >= m_ModbusData->usCoilsStartAddress) &&
-                 ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usNumOfCoils))))
+                 ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usMaxCoils))))
             {
                 ucException = ILLEGAL_DATA_ADDRESS;
             }
@@ -277,7 +277,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_WRITE_HOLDING_REGISTERS_ENABLE
         case FC_WRITE_HOLDING_REGISTERS:
             if (!((usDataStartAddress >= m_ModbusData->usHoldingRegisterStartAddress) &&
-                 ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usNumOfHoldingRegisters))))
+                 ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->uMaxHoldingRegisters))))
             {
                 ucException = ILLEGAL_DATA_ADDRESS;
             }

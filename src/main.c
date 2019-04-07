@@ -25,7 +25,7 @@
 //                           Defines and typedefs
 //****************************************************************************/
 #define INPUT_REGISTER_START_ADDRESS         0
-#define NUMBER_OF_INPUT_REGISTERS            10
+#define MAX_INPUT_REGISTERS                 10
 
 //****************************************************************************/
 //                           external variables
@@ -34,7 +34,7 @@
 //****************************************************************************/
 //                           Local variables
 //****************************************************************************/
-int16_t g_sInputRegisters[NUMBER_OF_INPUT_REGISTERS] =
+int16_t g_sInputRegisters[MAX_INPUT_REGISTERS] =
 { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
 //****************************************************************************/
@@ -55,7 +55,7 @@ int main(void)
 
     ModbusData.psInputRegisters            = g_sInputRegisters;
     ModbusData.usInputRegisterStartAddress = INPUT_REGISTER_START_ADDRESS;
-    ModbusData.usNumOfInputRegisters       = NUMBER_OF_INPUT_REGISTERS;
+    ModbusData.usMaxInputRegisters         = MAX_INPUT_REGISTERS;
 
     mbtcp_DataInit(&ModbusData);
     tcp_Init();

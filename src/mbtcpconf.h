@@ -32,10 +32,10 @@ typedef struct
     uint16_t usHoldingRegisterStartAddress; //!< Holding Register Start Address
     uint16_t usCoilsStartAddress;           //!< Coil Start Address
     uint16_t usDiscreteInputStartAddress;   //!< Discrete Input Start Address
-    uint16_t usNumOfInputRegisters;         //!< Number of Input Registers
-    uint16_t usNumOfHoldingRegisters;       //!< Number of Holding Registers
-    uint16_t usNumOfCoils;                  //!< Number of Coils
-    uint16_t usNumDiscreteInputs;           //!< Number of Discrete Inputs
+    uint16_t usMaxInputRegisters;           //!< Number of Input Registers
+    uint16_t usMaxHoldingRegisters;         //!< Number of Holding Registers
+    uint16_t usMaxCoils;                    //!< Number of Coils
+    uint16_t usMaxDiscreteInputs;           //!< Number of Discrete Inputs
 } ModbusData_t;
 
 //!Enable or Disable Read Coils  Function Code
