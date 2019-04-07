@@ -39,7 +39,7 @@ typedef struct
 } ModbusData_t;
 
 //!Enable or Disable Read Coils  Function Code
-#define MBT_CONF_FC_READ_COILS_ENABLE               0
+#define MBT_CONF_FC_READ_COILS_ENABLE               1
 
 //!Enable or Disable Read Discrete Inputs Function Code
 #define MBT_CONF_FC_READ_DISCRETE_INPUTS_ENABLE     1
