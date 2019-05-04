@@ -606,6 +606,7 @@ static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
     int16_t  sCoilValue         = 0;
     uint16_t usStartAddress     = 0;
     uint16_t usResponseLen      = 0;
+    uint8_t  *pucBuffer         = NULL;
 
     usDataStartAddress  = (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET] << 8);
     usDataStartAddress |= (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET + 1]);
