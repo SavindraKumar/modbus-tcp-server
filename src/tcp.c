@@ -28,7 +28,7 @@
 //                           Defines and typedefs
 //****************************************************************************/
 #define BUFF_SIZE_IN_BYTES   256
-#define PORT_NUMBER          50001
+#define PORT_NUMBER          502
 
 //****************************************************************************/
 //                           external variables
@@ -75,8 +75,8 @@ void tcp_Init(void)
     }
 
     server.sin_family      = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port        = PORT_NUMBER;
+    server.sin_addr.s_addr = htonl(INADDR_ANY);
+    server.sin_port        = htons(PORT_NUMBER);
 
     sReturn = bind(sock_desc, (struct sockaddr*)&server, sizeof(server));
 
