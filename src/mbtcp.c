@@ -74,14 +74,39 @@
 static uint16_t HandleRequest (const uint8_t *pucQuery, uint8_t *pucResponse);
 static uint8_t ValidateFunctionCodeAndDataAddress (const uint8_t *pucQuery);
 static bool BasicValidation (const uint8_t *pucQuery);
+
+#if FC_READ_COILS_ENABLE
 static uint16_t ReadCoils (const uint8_t *pucQuery, uint8_t *pucResponse);
+#endif//FC_READ_COILS_ENABLE
+
+#if FC_READ_DISCRETE_INPUTS_ENABLE
 static uint16_t ReadDiscreteInputs (const uint8_t *pucQuery, uint8_t *pucResponse);
+#endif//FC_READ_DISCRETE_INPUTS_ENABLE
+
+#if FC_READ_HOLDING_REGISTERS_ENABLE
 static uint16_t ReadHoldingRegisters (const uint8_t *pucQuery, uint8_t *pucResponse);
+#endif//FC_READ_HOLDING_REGISTERS_ENABLE
+
+#if FC_READ_INPUT_REGISTERS_ENABLE
 static uint16_t ReadInputRegisters (const uint8_t *pucQuery, uint8_t *pucResponse);
+#endif//FC_READ_INPUT_REGISTERS_ENABLE
+
+#if FC_WRITE_COIL_ENABLE
 static uint16_t WriteSingleCoil (const uint8_t *pucQuery, uint8_t *pucResponse);
+#endif//FC_WRITE_COIL_ENABLE
+
+#if FC_WRITE_HOLDING_REGISTER_ENABLE
 static uint16_t WriteSingleHoldingRegister (const uint8_t *pucQuery, uint8_t *pucResponse);
+#endif//FC_WRITE_HOLDING_REGISTER_ENABLE
+
+#if FC_WRITE_COILS_ENABLE
 static uint16_t WriteMultipleCoils (const uint8_t *pucQuery, uint8_t *pucResponse);
+#endif//FC_WRITE_COILS_ENABLE
+
+#if FC_WRITE_HOLDING_REGISTERS_ENABLE
 static uint16_t WriteMultipleHoldingRegisters (const uint8_t *pucQuery, uint8_t *pucResponse);
+#endif//FC_WRITE_HOLDING_REGISTERS_ENABLE
+
 static uint16_t BuildExceptionPacket (const uint8_t *pucQuery, uint8_t ucException, uint8_t *pucResponse);
 
 //****************************************************************************/
@@ -251,7 +276,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_WRITE_COIL_ENABLE
         case FC_WRITE_COIL:
             if (!((usDataStartAddress >= m_ModbusData->usCoilsStartAddress) &&
-                 ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usNumOfCoils))))
+                 ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usMaxCoils))))
             {
                 ucException = ILLEGAL_DATA_ADDRESS;
             }
@@ -281,7 +306,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_WRITE_HOLDING_REGISTERS_ENABLE
         case FC_WRITE_HOLDING_REGISTERS:
             if (!((usDataStartAddress >= m_ModbusData->usHoldingRegisterStartAddress) &&
-                 ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->uMaxHoldingRegisters))))
+                 ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usMaxHoldingRegisters))))
             {
                 ucException = ILLEGAL_DATA_ADDRESS;
             }
@@ -312,30 +337,53 @@ static uint16_t HandleRequest(const uint8_t *pucQuery, uint8_t *pucResponse)
 
     switch (ucFunctionCode)
     {
+#if FC_READ_COILS_ENABLE
     case FC_READ_COILS:
         usResponseLen = ReadCoils(pucQuery, pucResponse);
         break;
+#endif//FC_READ_COILS_ENABLE
+
+#if FC_READ_DISCRETE_INPUTS_ENABLE
     case FC_READ_DISCRETE_INPUTS:
         usResponseLen = ReadDiscreteInputs(pucQuery, pucResponse);
         break;
+#endif//FC_READ_DISCRETE_INPUTS_ENABLE
+
+#if FC_READ_HOLDING_REGISTERS_ENABLE
     case FC_READ_HOLDING_REGISTERS:
         usResponseLen = ReadHoldingRegisters(pucQuery, pucResponse);
         break;
+#endif//FC_READ_HOLDING_REGISTERS_ENABLE
+
+#if FC_READ_INPUT_REGISTERS_ENABLE
     case FC_READ_INPUT_REGISTERS:
         usResponseLen = ReadInputRegisters(pucQuery, pucResponse);
         break;
+#endif//FC_READ_INPUT_REGISTERS_ENABLE
+
+#if FC_WRITE_COIL_ENABLE
     case FC_WRITE_COIL:
         usResponseLen = WriteSingleCoil(pucQuery, pucResponse);
         break;
+#endif//FC_WRITE_COIL_ENABLE
+
+#if FC_WRITE_HOLDING_REGISTER_ENABLE
     case FC_WRITE_HOLDING_REGISTER:
         usResponseLen = WriteSingleHoldingRegister(pucQuery, pucResponse);
         break;
+#endif//FC_WRITE_HOLDING_REGISTER_ENABLE
+
+#if FC_WRITE_COILS_ENABLE
     case FC_WRITE_COILS:
         usResponseLen = WriteMultipleCoils(pucQuery, pucResponse);
         break;
+#endif//FC_WRITE_COILS_ENABLE
+
+#if FC_WRITE_HOLDING_REGISTERS_ENABLE
     case FC_WRITE_HOLDING_REGISTERS:
         usResponseLen = WriteMultipleHoldingRegisters(pucQuery, pucResponse);
         break;
+#endif//FC_WRITE_HOLDING_REGISTERS
     default:
         usResponseLen = 0;
         break;
@@ -364,6 +412,7 @@ static uint16_t BuildExceptionPacket(const uint8_t *pucQuery, uint8_t ucExceptio
     return (EXCEPTION_PACKET_LEN);
 }//end BuildExceptionPacket
 
+#if FC_READ_COILS_ENABLE
 //
 //! @brief Read Coils from Modbus data
 //! @param[in]  pucQuery    Pointer to modbus query buffer
@@ -433,7 +482,9 @@ static uint16_t ReadCoils(const uint8_t *pucQuery, uint8_t *pucResponse)
 
     return usResponseLen;
 }//end ReadCoils
+#endif//FC_READ_COILS_ENABLE
 
+#if FC_READ_DISCRETE_INPUTS_ENABLE
 //
 //! @brief Read Discrete Inputs from Modbus data
 //! @param[in]   pucQuery   Pointer  to modbus query buffer
@@ -503,7 +554,9 @@ static uint16_t ReadDiscreteInputs(const uint8_t *pucQuery, uint8_t *pucResponse
 
     return usResponseLen;
 }//end ReadDiscreteInputs
+#endif//FC_READ_DISCRETE_INPUTS_ENABLE
 
+#ifdef FC_READ_HOLDING_REGISTERS_ENABLE
 //
 //! @brief Read Holding Registers from Modbus data
 //! @param[in]   pucQuery   Pointer  to modbus query buffer
@@ -548,7 +601,9 @@ static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucRespon
 
     return (usResponseLen);
 }//end ReadHoldingRegisters
+#endif//FC_READ_HOLDING_REGISTERS_ENABLE
 
+#if FC_READ_INPUT_REGISTERS_ENABLE
 //
 //! @brief Read Input Registers from Modbus data
 //! @param[in]   pucQuery   Pointer  to modbus query buffer
@@ -593,7 +648,9 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
 
     return (usResponseLen);
 }//end ReadInputRegisters
+#endif//FC_READ_INPUT_REGISTERS_ENABLE
 
+#if FC_WRITE_COIL_ENABLE
 //
 //! @brief Read Write Single Coil into Modbus data
 //! @param[in]   pucQuery   Pointer  to modbus query buffer
@@ -647,7 +704,9 @@ static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
 
     return usResponseLen;
 }//end WriteSingleCoil
+#endif//FC_WRITE_COIL_ENABLE
 
+#if FC_WRITE_HOLDING_REGISTER_ENABLE
 //
 //! @brief Read Write Single Holding Register into Modbus data
 //! @param[in]   pucQuery   Pointer  to modbus query buffer
@@ -689,7 +748,9 @@ static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *puc
 
     return usResponseLen;
 }//end WriteSingleHoldingRegister
+#endif//FC_WRITE_HOLDING_REGISTER_ENABLE
 
+#if FC_WRITE_COILS_ENABLE
 //
 //! @brief Read Write Multiple Coils into Modbus data
 //! @param[in]   pucQuery   Pointer  to modbus query buffer
@@ -708,7 +769,9 @@ static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse
 
     return 0;
 }//end WriteMultipleCoils
+#endif//FC_WRITE_COILS_ENABLE
 
+#if FC_WRITE_HOLDING_REGISTERS_ENABLE
 //
 //! @brief Read Write Multiple Holding Registers into Modbus data
 //! @param[in]   pucQuery   Pointer  to modbus query buffer
@@ -727,6 +790,7 @@ static uint16_t WriteMultipleHoldingRegisters(const uint8_t *pucQuery, uint8_t *
 
     return 0;
 }//end WriteMultipleHoldingRegisters
+#endif//FC_WRITE_HOLDING_REGISTERS_ENABLE
 
 /******************************************************************************
  *                             End of file
