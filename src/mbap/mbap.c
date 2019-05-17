@@ -1,9 +1,9 @@
-//! @addtogroup ModbusTCP
+//! @addtogroup ModbusTCPProtocol
 //! @brief Modbus TCP application
 //! @{
 //!
 //****************************************************************************/
-//! @file mbtcp.c
+//! @file mbap.c
 //! @brief Modbus TCP Application source file
 //! @author Savindra Kumar(savindran1989@gmail.com)
 //! @bug No known bugs.
@@ -17,8 +17,8 @@
 #include <stdbool.h>
 #include <string.h>
 //user defined header files
-#include "mbtcpconf.h"
-#include "mbtcp.h"
+#include "mbap_conf.h"
+#include "mbap.h"
 
 //****************************************************************************/
 //                           Defines and typedefs
@@ -126,7 +126,7 @@ static const ModbusData_t *m_ModbusData = NULL;
 //! @param[in]  ModbusData  Modbus data structure
 //! @return     None
 //
-void mbtcp_DataInit(const ModbusData_t *ModbusData)
+void mbap_DataInit(const ModbusData_t *ModbusData)
 {
     m_ModbusData = ModbusData;
 
@@ -139,7 +139,7 @@ void mbtcp_DataInit(const ModbusData_t *ModbusData)
 //! @param[out]  pucResponse   Pointer to Modbus TCP Response buffer
 //! @return      uint16_t      Modbus TCP Response Length
 //
-uint16_t mbtcp_ProcessRequest(const uint8_t *pucQuery, uint8_t ucQueryLen, uint8_t *pucResponse)
+uint16_t mbap_ProcessRequest(const uint8_t *pucQuery, uint8_t ucQueryLen, uint8_t *pucResponse)
 {
     uint16_t usResponseLen = 0;
     uint8_t  ucException   = 0;

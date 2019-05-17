@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 //user defined files
-#include "mbtcpconf.h"
+#include "mbap_conf.h"
 #include "tcp.h"
 
 //****************************************************************************/
@@ -79,7 +79,7 @@ int main(void)
     ModbusData.usCoilsStartAddress           = COILS_START_ADDRESS;
     ModbusData.usMaxCoils                    = MAX_COILS;
 
-    mbtcp_DataInit(&ModbusData);
+    mbap_DataInit(&ModbusData);
     tcp_Init();
 
     return 0;

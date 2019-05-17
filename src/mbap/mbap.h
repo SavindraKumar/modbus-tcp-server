@@ -1,16 +1,16 @@
-//! @addtogroup ModbusTCP
+//! @addtogroup ModbusTCPProtocol
 //! @{
 //
 //****************************************************************************
-//! @file mbtcp.h
+//! @file mbap.h
 //! @brief This contains the prototypes, macros, constants or global variables
 //!        for the ModbusTCP Application
 //! @author Savindra Kumar(savindran1989@gmail.com)
 //! @bug No known bugs.
 //
 //****************************************************************************
-#ifndef MBTCP_H
-#define MBTCP_H
+#ifndef MBAP_H
+#define MBAP_H
 
 //****************************************************************************
 //                           Includes
@@ -107,7 +107,7 @@ enum Exception
 
 
 
-#endif // MBTCP_H
+#endif // MBAP_H
 //****************************************************************************
 //                             End of file
 //****************************************************************************

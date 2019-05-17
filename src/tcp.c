@@ -22,7 +22,7 @@
 #include <netdb.h>
 #include <unistd.h>
 //user defined header files
-#include "mbtcpconf.h"
+#include "mbap_conf.h"
 
 //****************************************************************************/
 //                           Defines and typedefs
@@ -131,7 +131,7 @@ void tcp_Init(void)
                 printf("\n");
             }//end if else
 
-            usResponseLength = mbtcp_ProcessRequest(pucQuery, sReturn, pucResponse);
+            usResponseLength = mbap_ProcessRequest(pucQuery, sReturn, pucResponse);
 
             if (0 != usResponseLength)
             {
