@@ -97,7 +97,7 @@ void tcp_Init(void)
     len = sizeof(client);
 
     CLIENT_REQUEST:
-    while (temp_sock_desc = accept(sock_desc, (struct sockaddr*)&client, &len) )
+    while ( (temp_sock_desc = accept(sock_desc, (struct sockaddr*)&client, &len)) )
     {
         printf("\nClient connected\n");
 
