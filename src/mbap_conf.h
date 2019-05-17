@@ -1,4 +1,4 @@
-//! @addtogroup ModbusTCPConfiguration
+//! @addtogroup ModbusTCPProtocolConfiguration
 //! @brief Configuration for modbus application
 //! @{
 //
@@ -10,8 +10,8 @@
 //! @bug No known bugs.
 //
 //****************************************************************************
-#ifndef MBTCPCONF_H
-#define MBTCPCONF_H
+#ifndef MBAP_CONF_H
+#define MBAP_CONF_H
 
 //****************************************************************************
 //                           Includes
@@ -69,11 +69,11 @@ typedef struct
 //****************************************************************************
 //                           Global Functions
 //****************************************************************************
-void mbtcp_DataInit (const ModbusData_t *ModbusData);
-uint16_t mbtcp_ProcessRequest (const uint8_t *pucQuery, uint8_t ucQueryLen, uint8_t *pucResponse);
+void mbap_DataInit (const ModbusData_t *ModbusData);
+uint16_t mbap_ProcessRequest (const uint8_t *pucQuery, uint8_t ucQueryLen, uint8_t *pucResponse);
 
 
-#endif // MBTCPCONF_H
+#endif // MBAP_CONF_H
 //****************************************************************************
 //                             End of file
 //****************************************************************************
