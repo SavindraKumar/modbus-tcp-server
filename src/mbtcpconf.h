@@ -51,7 +51,7 @@ typedef struct
 #define MBT_CONF_FC_READ_INPUT_REGISTERS_ENABLE     1
 
 //!Enable or Disable Write Single Coil Function Code
-#define MBT_CONF_FC_WRITE_COIL_ENABLE               0
+#define MBT_CONF_FC_WRITE_COIL_ENABLE               1
 
 //!Enable or Disable Write Single Holding Register Function Code
 #define MBT_CONF_FC_WRITE_HOLDING_REGISTER_ENABLE   1

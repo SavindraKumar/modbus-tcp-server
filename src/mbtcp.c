@@ -276,7 +276,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 #if FC_WRITE_COIL_ENABLE
         case FC_WRITE_COIL:
             if (!((usDataStartAddress >= m_ModbusData->usCoilsStartAddress) &&
-                 ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usMaxCoils))))
+                 (usDataStartAddress <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usMaxCoils))))
             {
                 ucException = ILLEGAL_DATA_ADDRESS;
             }
@@ -660,27 +660,26 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
 static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
-    int16_t  sCoilValue         = 0;
+    uint16_t usCoilValue        = 0;
     uint16_t usStartAddress     = 0;
     uint16_t usResponseLen      = 0;
-    uint8_t  *pucBuffer         = NULL;
 
     usDataStartAddress  = (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET] << 8);
     usDataStartAddress |= (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET + 1]);
-    sCoilValue          = (uint16_t)(pucQuery[COIL_VALUE_OFFSSET] << 8);
-    sCoilValue         |= (uint16_t)(pucQuery[COIL_VALUE_OFFSSET + 1]);
+    usCoilValue         = (uint16_t)(pucQuery[COIL_VALUE_OFFSSET] << 8);
+    usCoilValue        |= (uint16_t)(pucQuery[COIL_VALUE_OFFSSET + 1]);
 
     usStartAddress = usDataStartAddress - m_ModbusData->usCoilsStartAddress;
 
-    if (0xFF00 == sCoilValue)
+    if (0xFF00 == usCoilValue)
     {
         //Turn on coil
-        sCoilValue = 1;
+        usCoilValue = 1;
     }
-    else if (0x0000 == sCoilValue)
+    else if (0x0000 == usCoilValue)
     {
         //Turn off coil
-        sCoilValue = 1;
+        usCoilValue = 0;
     }
     else
     {
@@ -691,16 +690,36 @@ static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
     usResponseLen = WRITE_SINGLE_COIL_RESPONSE_LEN;
     memcpy(pucResponse, pucQuery, usResponseLen);
 
-     uint16_t usByteOffset = usStartAddress  / 8 ;
-     uint16_t usNPreBits   = usStartAddress - usByteOffset * 8;
-     uint16_t usMask       = (1 << sCoilValue)  - 1 ;
-     uint16_t usTmpBuf     = m_ModbusData->pucCoils[usByteOffset];
-     usTmpBuf    |= m_ModbusData->pucCoils[usByteOffset + 1] << 8;
-     // throw away unneeded bits
-     usTmpBuf     = usTmpBuf >> usNPreBits;
-     // mask away bits above the requested bitfield
-     usTmpBuf     = usTmpBuf & usMask;
-     *pucBuffer++ = (uint8_t)usTmpBuf;
+    uint16_t  usTmp;
+    uint16_t  usMask;
+    uint16_t  usByteOffset;
+    uint16_t  usNPreBits;
+    uint8_t   ucNumOfBits = 1;
+
+    // Calculate byte offset for first byte containing the bit values starting
+    // at usBitOffset
+    usByteOffset = usStartAddress / 8;
+
+    // How many bits precede our bits to set
+    usNPreBits = usStartAddress - usByteOffset * 8;
+
+    // Move bit field into position over bits to set
+    usCoilValue <<= usNPreBits;
+
+    // Prepare a mask for setting the new bits
+    usMask   = (uint16_t)(1 << ucNumOfBits - 1);
+    usMask <<= usStartAddress - usByteOffset * 8;
+
+    // copy bits into temporary storage
+    usTmp  = m_ModbusData->pucCoils[usByteOffset];
+    usTmp |= m_ModbusData->pucCoils[usByteOffset + 1] << 8;
+
+    // Zero out bit field bits and then or value bits into them
+    usTmp = (usTmp & (~usMask)) | usCoilValue;
+
+    // move bits back into storage
+    m_ModbusData->pucCoils[usByteOffset]     = (uint8_t)(usTmp & 0xFF);
+    m_ModbusData->pucCoils[usByteOffset + 1] = (uint8_t)(usTmp >> 8);
 
     return usResponseLen;
 }//end WriteSingleCoil
