@@ -71,7 +71,7 @@ void tcp_Init(void)
     if (sock_desc == -1)
     {
         printf("Error in socket creation");
-        exit(1);
+        return;
     }
 
     server.sin_family      = AF_INET;
@@ -83,7 +83,7 @@ void tcp_Init(void)
     if (-1 == sReturn)
     {
         printf("Error in binding");
-        exit(1);
+        return;
     }
 
     sReturn = listen(sock_desc, 20);
@@ -91,46 +91,78 @@ void tcp_Init(void)
     if (-1 == sReturn)
     {
         printf("Error in listening");
-        exit(1);
+        return;
     }
 
-    len            = sizeof(client);
-    temp_sock_desc = accept(sock_desc, (struct sockaddr*)&client, &len);
+    len = sizeof(client);
 
-    if (-1 == temp_sock_desc)
+    CLIENT_REQUEST:
+    while (temp_sock_desc = accept(sock_desc, (struct sockaddr*)&client, &len) )
     {
-        printf("Error in temporary socket creation");
-        exit(1);
-    }
+        printf("\nClient connected\n");
+
+        while (1)
+        {
+            uint16_t usResponseLength = 0;
+
+            sReturn = recv(temp_sock_desc, pucQuery, BUFF_SIZE_IN_BYTES, 0);
+
+            if (0 == sReturn)
+            {
+                printf("\nConnection closed\n");
+                close(temp_sock_desc);
+                break;
+            }
+            else if (sReturn < 0)
+            {
+                printf("\nConnection reset\n");
+                close(temp_sock_desc);
+                break;
+            }
+            else
+            {
+                printf("Modbus request:\n");
+
+                for (uint16_t usCount = 0; usCount < sReturn; usCount++)
+                {
+                    printf("%d ", pucQuery[usCount]);
+                }
+
+                printf("\n");
+            }//end if else
+
+            usResponseLength = mbtcp_ProcessRequest(pucQuery, sReturn, pucResponse);
+
+            if (0 != usResponseLength)
+            {
+                sReturn = send(temp_sock_desc, pucResponse, usResponseLength, 0);
+
+                if (sReturn < 0)
+                {
+                    printf("\nsend failed\n");
+                }
+                else
+                {
+                    printf("Modbus response:\n");
+
+                    for (uint16_t usCount = 0; usCount < sReturn; usCount++)
+                    {
+                        printf("%d ", pucResponse[usCount]);
+                    }
+
+                    printf("\n");
+                }//end if else
+            }//end if
+        }//end while
+    }//end while
 
 
-    while (1)
+    if (temp_sock_desc < 0)
     {
-    	uint16_t usResponseLength = 0;
-
-        sReturn = recv(temp_sock_desc, pucQuery, BUFF_SIZE_IN_BYTES, 0);
-
-        if (sReturn == -1)
-        {
-            printf("Error in receiving");
-            exit(1);
-        }
-
-        usResponseLength = mbtcp_ProcessRequest(pucQuery, sReturn, pucResponse);
-
-        if (0 != usResponseLength)
-        {
-            sReturn = send(temp_sock_desc, pucResponse, usResponseLength, 0);
-        }
-
-
-        if(sReturn==-1)
-        {
-            printf("Error in sending");
-            exit(1);
-        }
+        printf("accpet failed");
+        goto CLIENT_REQUEST;
     }
-    close(temp_sock_desc);
+
 
     exit(0);
 }//end TcpInit
