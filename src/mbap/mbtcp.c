@@ -707,7 +707,7 @@ static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
     usCoilValue <<= usNPreBits;
 
     // Prepare a mask for setting the new bits
-    usMask   = (uint16_t)(1 << ucNumOfBits - 1);
+    usMask   = (uint16_t)((1 << ucNumOfBits) - 1);
     usMask <<= usStartAddress - usByteOffset * 8;
 
     // copy bits into temporary storage
