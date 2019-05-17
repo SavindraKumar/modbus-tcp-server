@@ -121,15 +121,8 @@ void tcp_Init(void)
             }
             else
             {
-                printf("Modbus request:\n");
-
-                for (uint16_t usCount = 0; usCount < sReturn; usCount++)
-                {
-                    printf("%d ", pucQuery[usCount]);
-                }
-
-                printf("\n");
-            }//end if else
+                //read successfully
+            }
 
             usResponseLength = mbap_ProcessRequest(pucQuery, sReturn, pucResponse);
 
@@ -141,17 +134,6 @@ void tcp_Init(void)
                 {
                     printf("\nsend failed\n");
                 }
-                else
-                {
-                    printf("Modbus response:\n");
-
-                    for (uint16_t usCount = 0; usCount < sReturn; usCount++)
-                    {
-                        printf("%d ", pucResponse[usCount]);
-                    }
-
-                    printf("\n");
-                }//end if else
             }//end if
         }//end while
     }//end while

@@ -129,6 +129,7 @@ static const ModbusData_t *m_ModbusData = NULL;
 void mbap_DataInit(const ModbusData_t *ModbusData)
 {
     m_ModbusData = ModbusData;
+    MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_MSG, "Modbus tcp data intialised\r\n");
 
 }//end mbtcp_DataInit
 
@@ -193,18 +194,21 @@ static bool BasicValidation(const uint8_t *pucQuery)
     if (MBT_PROTOCOL_ID != usProtocolId)
     {
         bIsQueryOk = false;
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Wrong protocol id\r\n");
     }
 
     //check if pdu length exceed
     if (usMbapLen > MAX_PDU_LEN)
     {
         bIsQueryOk = false;
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Pdu length exceeded\r\n");
     }
 
     //check for Unit Id
     if (DEVICE_ID != ucUnitId)
     {
         bIsQueryOk = false;
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Wrong device id\r\n");
     }
 
     return (bIsQueryOk);
@@ -238,6 +242,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
              ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usMaxCoils))))
         {
             ucException = ILLEGAL_DATA_ADDRESS;
+            MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal coil address\r\n");
         }
         break;
 #endif
@@ -248,6 +253,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
              ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usDiscreteInputStartAddress + m_ModbusData->usMaxDiscreteInputs))))
         {
             ucException = ILLEGAL_DATA_ADDRESS;
+            MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal discrete input address\r\n");
         }
         break;
 #endif
@@ -258,6 +264,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
              ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usMaxHoldingRegisters))))
         {
             ucException = ILLEGAL_DATA_ADDRESS;
+            MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal holding register address\r\n");
         }
         break;
 #endif
@@ -269,6 +276,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
 
         {
             ucException = ILLEGAL_DATA_ADDRESS;
+            MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal input register address\r\n");
         }
         break;
 #endif
@@ -279,6 +287,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
                  (usDataStartAddress <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usMaxCoils))))
             {
                 ucException = ILLEGAL_DATA_ADDRESS;
+                MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal coil address\r\n");
             }
             break;
 #endif
@@ -289,6 +298,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
                  (usDataStartAddress <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usMaxHoldingRegisters))))
             {
                 ucException = ILLEGAL_DATA_ADDRESS;
+                MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal holding register address\r\n");
             }
             break;
 #endif
@@ -299,6 +309,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
                  ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usCoilsStartAddress + m_ModbusData->usMaxCoils))))
             {
                 ucException = ILLEGAL_DATA_ADDRESS;
+                MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal coil address\r\n");
             }
             break;
 #endif
@@ -309,6 +320,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
                  ((usDataStartAddress + usNumOfData) <= (m_ModbusData->usHoldingRegisterStartAddress + m_ModbusData->usMaxHoldingRegisters))))
             {
                 ucException = ILLEGAL_DATA_ADDRESS;
+                MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal holding register address\r\n");
             }
             break;
 #endif
@@ -339,48 +351,56 @@ static uint16_t HandleRequest(const uint8_t *pucQuery, uint8_t *pucResponse)
     {
 #if FC_READ_COILS_ENABLE
     case FC_READ_COILS:
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_MSG, "Reading coils\r\n");
         usResponseLen = ReadCoils(pucQuery, pucResponse);
         break;
 #endif//FC_READ_COILS_ENABLE
 
 #if FC_READ_DISCRETE_INPUTS_ENABLE
     case FC_READ_DISCRETE_INPUTS:
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_MSG, "Reading discrete inputs\r\n");
         usResponseLen = ReadDiscreteInputs(pucQuery, pucResponse);
         break;
 #endif//FC_READ_DISCRETE_INPUTS_ENABLE
 
 #if FC_READ_HOLDING_REGISTERS_ENABLE
     case FC_READ_HOLDING_REGISTERS:
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_MSG, "Reading holding registers\r\n");
         usResponseLen = ReadHoldingRegisters(pucQuery, pucResponse);
         break;
 #endif//FC_READ_HOLDING_REGISTERS_ENABLE
 
 #if FC_READ_INPUT_REGISTERS_ENABLE
     case FC_READ_INPUT_REGISTERS:
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_MSG, "Reading input registers\r\n");
         usResponseLen = ReadInputRegisters(pucQuery, pucResponse);
         break;
 #endif//FC_READ_INPUT_REGISTERS_ENABLE
 
 #if FC_WRITE_COIL_ENABLE
     case FC_WRITE_COIL:
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_MSG, "Writing coil\r\n");
         usResponseLen = WriteSingleCoil(pucQuery, pucResponse);
         break;
 #endif//FC_WRITE_COIL_ENABLE
 
 #if FC_WRITE_HOLDING_REGISTER_ENABLE
     case FC_WRITE_HOLDING_REGISTER:
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_MSG, "Writing holding register\r\n");
         usResponseLen = WriteSingleHoldingRegister(pucQuery, pucResponse);
         break;
 #endif//FC_WRITE_HOLDING_REGISTER_ENABLE
 
 #if FC_WRITE_COILS_ENABLE
     case FC_WRITE_COILS:
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_MSG, "Writing Coils\r\n");
         usResponseLen = WriteMultipleCoils(pucQuery, pucResponse);
         break;
 #endif//FC_WRITE_COILS_ENABLE
 
 #if FC_WRITE_HOLDING_REGISTERS_ENABLE
     case FC_WRITE_HOLDING_REGISTERS:
+        MBT_DEBUG(MBT_CONF_DEBUG_LEVEL_MSG, "Writing holding registers\r\n");
         usResponseLen = WriteMultipleHoldingRegisters(pucQuery, pucResponse);
         break;
 #endif//FC_WRITE_HOLDING_REGISTERS

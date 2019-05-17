@@ -38,30 +38,46 @@ typedef struct
     uint16_t usMaxDiscreteInputs;           //!< Number of Discrete Inputs
 } ModbusData_t;
 
-//!Enable or Disable Read Coils  Function Code
+//! @brief Enable or Disable Read Coils  Function Code
 #define MBT_CONF_FC_READ_COILS_ENABLE               1
 
-//!Enable or Disable Read Discrete Inputs Function Code
+//! @brief Enable or Disable Read Discrete Inputs Function Code
 #define MBT_CONF_FC_READ_DISCRETE_INPUTS_ENABLE     1
 
-//!Enable or Disable Read Holding Registers Function Code
+//! @brief Enable or Disable Read Holding Registers Function Code
 #define MBT_CONF_FC_READ_HOLDING_REGISTERS_ENABLE   1
 
-//!Enable or Disable Read Input Registers Function Code
+//! @brief Enable or Disable Read Input Registers Function Code
 #define MBT_CONF_FC_READ_INPUT_REGISTERS_ENABLE     1
 
-//!Enable or Disable Write Single Coil Function Code
+//! @brief Enable or Disable Write Single Coil Function Code
 #define MBT_CONF_FC_WRITE_COIL_ENABLE               1
 
-//!Enable or Disable Write Single Holding Register Function Code
+//! @brief Enable or Disable Write Single Holding Register Function Code
 #define MBT_CONF_FC_WRITE_HOLDING_REGISTER_ENABLE   1
 
-//!Enable or Disable Write Multiple Coil Function Code
+//! @brief Enable or Disable Write Multiple Coil Function Code
 #define MBT_CONF_FC_WRITE_COILS_ENABLE              0
 
-//!Enable or Disable Write Single Holding Registers Function Code
+//! @brief Enable or Disable Write Single Holding Registers Function Code
 #define MBT_CONF_FC_WRITE_HOLDING_REGISTERS_ENABLE  0
 
+//! @brief Enable or Disable Write Single Holding Registers Function Code
+#define MBT_CONF_DEBUG_ENABLE                       1
+
+#define MBT_CONF_DEBUG_LEVEL_WARNING                1
+#define MBT_CONF_DEBUG_LEVEL_MSG                    1
+
+#if MBT_CONF_DEBUG_ENABLE
+#include <stdio.h>
+#define MBT_DEBUG(debug_level, message)         if (debug_level) \
+                                                { \
+                                                    printf(message); \
+                                                } \
+
+#else
+#define MBT_DEBUG(debug_level, message)
+#endif
 //****************************************************************************
 //                           Global variables
 //****************************************************************************
