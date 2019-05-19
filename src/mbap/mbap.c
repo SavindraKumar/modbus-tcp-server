@@ -36,9 +36,15 @@
 #define FUNCTION_CODE_OFFSET                        (7u)
 #define DATA_START_ADDRESS_OFFSET                   (8u)
 #define NO_OF_DATA_OFFSET                           (10u)
+#define WRITE_BYTE_COUNT_OFFSET                     (12u)
 //PDU offset in response
 #define BYTE_COUNT_OFFSET                           (8u)
 #define DATA_VALUES_OFFSET                          (9u)
+//PDU offset in write holding registers query
+#define WRITE_HOLDING_REGISTER_VALUE_OFFSET         (13u)
+//PDU offset in write holding registers response
+#define WRITE_START_ADDRESS                         (8u)
+#define WRITE_NUM_OF_DATA                           (10u)
 //write single holding register
 //function code(1 byte) + start address( 2 bytes) + Register value(2 bytes) = 5 bytes
 #define WRITE_SINGLE_REGISTER_RESPONSE_LEN          (MBAP_HEADER_LEN + 5u)
@@ -63,11 +69,15 @@
 #define MBAP_LEN_READ_HOLDING_REGISTERS(usNumOfData)     (3u + usNumOfData * 2u)
 #define MBAP_LEN_READ_DISCRETE_INPUTS(usNumOfData)       (3u + usNumOfData / 8 )
 #define MBAP_LEN_READ_COILS(usNumOfData)                 (3u + usNumOfData / 8 )
+//UnitId(1 byte) + function code(1 byte) + start address(2 byte) + number of data(2 byte)
+#define MBAP_LEN_WRITE_HOLDING_REGISTERS                 (6u)
 //MBAP Header + function code(1 byte) + Byte Count(1 byte) + 2 * Number of Data
 #define READ_INPUT_REGISTERS_RESPONSE_LEN(usNumOfData)   (MBAP_HEADER_LEN + 2u + usNumOfData * 2u)
 #define READ_HOLDING_REGISTERS_RESPONSE_LEN(usNumOfData) (MBAP_HEADER_LEN + 2u + usNumOfData * 2u)
 #define READ_DISCRETE_INPUTS_RESPONSE_LEN(usNumOfData)   (MBAP_HEADER_LEN + 2u + usNumOfData / 8)
 #define READ_COILS_RESPONSE_LEN(usNumOfData)             (MBAP_HEADER_LEN + 2u + usNumOfData / 8)
+//MBAP Header + function code(1 byte) + start address (2 byte) + number of data(2 byte)
+#define WRITE_HOLDING_REGISTERS_RESPONSE_LEN             (MBAP_HEADER_LEN + 5u)
 //****************************************************************************/
 //                           Private Functions
 //****************************************************************************/
@@ -806,6 +816,8 @@ static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse
     usNumOfData         = (uint16_t)(pucQuery[NO_OF_DATA_OFFSET] << 8);
     usNumOfData        |= (uint16_t)(pucQuery[NO_OF_DATA_OFFSET + 1]);
 
+
+
     return 0;
 }//end WriteMultipleCoils
 #endif//FC_WRITE_COILS_ENABLE
@@ -821,13 +833,56 @@ static uint16_t WriteMultipleHoldingRegisters(const uint8_t *pucQuery, uint8_t *
 {
     uint16_t usDataStartAddress = 0;
     uint16_t usNumOfData        = 0;
+    uint16_t usMbapLength       = 0;
+    uint16_t usStartAddress     = 0;
+    uint16_t usResponseLen      = 0;
+    uint8_t  ucByteCount        = 0;
 
     usDataStartAddress  = (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET] << 8);
     usDataStartAddress |= (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET + 1]);
     usNumOfData         = (uint16_t)(pucQuery[NO_OF_DATA_OFFSET] << 8);
     usNumOfData        |= (uint16_t)(pucQuery[NO_OF_DATA_OFFSET + 1]);
+    ucByteCount         = pucQuery[WRITE_BYTE_COUNT_OFFSET];
 
-    return 0;
+    if (ucByteCount != (usNumOfData * 2) )
+    {
+        usResponseLen = 0;
+    }
+
+    usStartAddress = (usDataStartAddress - m_ModbusData->usHoldingRegisterStartAddress);
+    usMbapLength   = MBAP_LEN_WRITE_HOLDING_REGISTERS;
+
+    //Copy MBAP Header and function code into response
+    memcpy(pucResponse, pucQuery, (MBAP_HEADER_LEN + 1));
+
+    //Modify Information in MBAP Header for response
+    pucResponse[MBAP_LEN_OFFSET]         = (uint8_t)(usMbapLength << 8);
+    pucResponse[MBAP_LEN_OFFSET + 1]     = (uint8_t)(usMbapLength & 0xFF);
+    pucResponse[WRITE_START_ADDRESS]     = (uint8_t)(usDataStartAddress << 8);
+    pucResponse[WRITE_START_ADDRESS + 1] = (uint8_t)(usDataStartAddress & 0xFF);
+    pucResponse[WRITE_NUM_OF_DATA ]      = (uint8_t)(usNumOfData << 8);
+    pucResponse[WRITE_NUM_OF_DATA + 1]   = (uint8_t)(usNumOfData & 0xFF);
+
+    usResponseLen = WRITE_HOLDING_REGISTERS_RESPONSE_LEN;
+
+    uint8_t ucCount = 0;
+
+    while (usNumOfData > 0)
+    {
+        int16_t usValue;
+
+        usValue  = (uint16_t)(pucQuery[WRITE_HOLDING_REGISTER_VALUE_OFFSET + ucCount] << 8);
+        ucCount++;
+        usValue |= (uint16_t)(pucQuery[WRITE_HOLDING_REGISTER_VALUE_OFFSET + ucCount]);
+        m_ModbusData->psHoldingRegisters[usStartAddress] = usValue;
+
+        ucCount++;
+        usStartAddress++;
+        usNumOfData--;
+
+    }
+
+    return (usResponseLen);
 }//end WriteMultipleHoldingRegisters
 #endif//FC_WRITE_HOLDING_REGISTERS_ENABLE
 
