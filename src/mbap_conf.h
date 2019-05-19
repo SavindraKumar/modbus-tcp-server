@@ -62,13 +62,11 @@ typedef struct
 //! @brief Enable or Disable Write Single Holding Registers Function Code
 #define MBT_CONF_FC_WRITE_HOLDING_REGISTERS_ENABLE  1
 
-//! @brief Enable or Disable Write Single Holding Registers Function Code
-#define MBT_CONF_DEBUG_ENABLE                       1
-
+//! @brief Enable or Disable debug msg , warning
 #define MBT_CONF_DEBUG_LEVEL_WARNING                1
 #define MBT_CONF_DEBUG_LEVEL_MSG                    1
 
-#if MBT_CONF_DEBUG_ENABLE
+#if (MBT_CONF_DEBUG_LEVEL_WARNING | MBT_CONF_DEBUG_LEVEL_MSG)
 #include <stdio.h>
 #define MBT_DEBUG(debug_level, message)         if (debug_level) \
                                                 { \
