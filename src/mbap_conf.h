@@ -3,7 +3,7 @@
 //! @{
 //
 //****************************************************************************
-//! @file mbtcpconf.h
+//! @file mbap_conf.h
 //! @brief This contains the prototypes, macros, constants or global variables
 //!        for the ModbusTCP Application Configuration
 //! @author Savindra Kumar(savindran1989@gmail.com)
@@ -62,20 +62,6 @@ typedef struct
 //! @brief Enable or Disable Write Single Holding Registers Function Code
 #define MBT_CONF_FC_WRITE_HOLDING_REGISTERS_ENABLE  1
 
-//! @brief Enable or Disable debug msg , warning
-#define MBT_CONF_DEBUG_LEVEL_WARNING                1
-#define MBT_CONF_DEBUG_LEVEL_MSG                    1
-
-#if (MBT_CONF_DEBUG_LEVEL_WARNING | MBT_CONF_DEBUG_LEVEL_MSG)
-#include <stdio.h>
-#define MBT_DEBUG(debug_level, message)         if (debug_level) \
-                                                { \
-                                                    printf(message); \
-                                                } \
-
-#else
-#define MBT_DEBUG(debug_level, message)
-#endif
 //****************************************************************************
 //                           Global variables
 //****************************************************************************
