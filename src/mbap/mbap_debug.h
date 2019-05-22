@@ -24,8 +24,8 @@
 //      If warning leve and msg level debug changed mask should be changed
 #define MBT_CONF_DEBUG_MASK                         0x06
 #define MBT_DEBUG                                   1
-#define MBT_CONF_DEBUG_WARNING_ENABLE               0
-#define MBT_CONFIG_DEBUG_MSG_ENABLE                 0
+#define MBT_CONF_DEBUG_WARNING_ENABLE               1
+#define MBT_CONFIG_DEBUG_MSG_ENABLE                 1
 
 
 #if MBT_CONF_DEBUG_WARNING_ENABLE
