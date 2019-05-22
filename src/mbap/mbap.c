@@ -966,7 +966,6 @@ static uint16_t WriteMultipleHoldingRegisters(const uint8_t *pucQuery, uint8_t *
         ucCount++;
         usStartAddress++;
         usNumOfData--;
-
     }
 
     return (usResponseLen);
