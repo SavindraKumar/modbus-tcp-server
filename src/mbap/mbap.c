@@ -41,9 +41,9 @@
 //PDU offset in response
 #define BYTE_COUNT_OFFSET                           (8u)
 #define DATA_VALUES_OFFSET                          (9u)
-//PDU offset in write holding registers query
+//PDU offset in write holding registers/coils query
 #define WRITE_VALUE_OFFSET                          (13u)
-//PDU offset in write holding registers response
+//PDU offset in write holding registers/coils response
 #define WRITE_START_ADDRESS                         (8u)
 #define WRITE_NUM_OF_DATA                           (10u)
 //write single holding register
@@ -57,6 +57,7 @@
 //Exception packet offset in response
 #define EXCEPTION_FUNCTION_CODE_OFFSET              (7u)
 #define EXCEPTION_TYPE_OFFSET                       (8u)
+#define EXCEPTION_START_FUNCTION_CODE               (0x80)
 //Unit Id(1 byte) + Error Code(1 byte) + Exception Code(1 byte) = 2 bytes
 #define MBAP_LEN_IN_EXCEPTION_PACKET                (3u)
 //Error Code(1 byte) + Exception Code(1 byte) = 2 bytes
@@ -201,7 +202,7 @@ static bool BasicValidation(const uint8_t *pucQuery)
     usProtocolId |= (uint16_t)(pucQuery[MBAP_PROTOCOL_ID_OFFSET + 1]);
     usMbapLen     = (uint16_t)(pucQuery[MBAP_LEN_OFFSET] << 8);
     usMbapLen    |= (uint16_t)(pucQuery[MBAP_LEN_OFFSET + 1]);
-    ucUnitId      = (uint8_t)(pucQuery[MBAP_UNIT_ID_OFFSET]);
+    ucUnitId      = pucQuery[MBAP_UNIT_ID_OFFSET];
 
     //check for Modbus TCP/IP protocol
     if (MBT_PROTOCOL_ID != usProtocolId)
@@ -241,7 +242,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
     uint8_t  ucException        = 0;
 
     //Modbus PDU Information
-    ucFunctionCode      = (uint8_t)pucQuery[FUNCTION_CODE_OFFSET];
+    ucFunctionCode      = pucQuery[FUNCTION_CODE_OFFSET];
     usDataStartAddress  = (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET] << 8);
     usDataStartAddress |= (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET + 1]);
     usNumOfData         = (uint16_t)(pucQuery[NO_OF_DATA_OFFSET] << 8);
@@ -358,7 +359,7 @@ static uint16_t HandleRequest(const uint8_t *pucQuery, uint8_t *pucResponse)
     uint16_t usResponseLen  = 0;
 
     // filter PDU information
-    ucFunctionCode = (uint8_t) pucQuery[FUNCTION_CODE_OFFSET];
+    ucFunctionCode = pucQuery[FUNCTION_CODE_OFFSET];
 
     switch (ucFunctionCode)
     {
@@ -439,7 +440,7 @@ static uint16_t BuildExceptionPacket(const uint8_t *pucQuery, uint8_t ucExceptio
     //Modify information for response
     pucResponse[MBAP_LEN_OFFSET]                = 0;
     pucResponse[MBAP_LEN_OFFSET + 1]            = MBAP_LEN_IN_EXCEPTION_PACKET;
-    pucResponse[EXCEPTION_FUNCTION_CODE_OFFSET] = 0x80 + pucQuery[FUNCTION_CODE_OFFSET];
+    pucResponse[EXCEPTION_FUNCTION_CODE_OFFSET] = EXCEPTION_START_FUNCTION_CODE + pucQuery[FUNCTION_CODE_OFFSET];
     pucResponse[EXCEPTION_TYPE_OFFSET]          = ucException;
 
     return (EXCEPTION_PACKET_LEN);
@@ -463,8 +464,8 @@ static uint16_t ReadCoils(const uint8_t *pucQuery, uint8_t *pucResponse)
 
     usDataStartAddress  = (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET] << 8);
     usDataStartAddress |= (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET + 1]);
-    sNumOfData          = (uint16_t)(pucQuery[NO_OF_DATA_OFFSET] << 8);
-    sNumOfData         |= (uint16_t)(pucQuery[NO_OF_DATA_OFFSET + 1]);
+    sNumOfData          = (int16_t)(pucQuery[NO_OF_DATA_OFFSET] << 8);
+    sNumOfData         |= (int16_t)(pucQuery[NO_OF_DATA_OFFSET + 1]);
 
     usStartAddress = usDataStartAddress - m_ModbusData->usCoilsStartAddress;
 
@@ -475,11 +476,12 @@ static uint16_t ReadCoils(const uint8_t *pucQuery, uint8_t *pucResponse)
 
     if (0 != (sNumOfData & MULTIPLE_OF_8))
     {
-        usMbapLen = usMbapLen + 1;
+        usMbapLen += 1;
     }
+
     //Modify Information in MBAP Header for response
-    pucResponse[MBAP_LEN_OFFSET]     = (uint16_t)(usMbapLen << 8);
-    pucResponse[MBAP_LEN_OFFSET + 1] = (uint16_t)(usMbapLen & 0xFF);
+    pucResponse[MBAP_LEN_OFFSET]     = (uint8_t)(usMbapLen << 8);
+    pucResponse[MBAP_LEN_OFFSET + 1] = (uint8_t)(usMbapLen & 0xFF);
     pucResponse[BYTE_COUNT_OFFSET]   = (uint8_t)(sNumOfData / 8);
     pucBuffer                        = &pucResponse[DATA_VALUES_OFFSET];
 
@@ -493,21 +495,21 @@ static uint16_t ReadCoils(const uint8_t *pucQuery, uint8_t *pucResponse)
 
     while (sNumOfData > 0)
     {
-        uint16_t  usTmpBuf;
-        uint16_t  usMask;
-        uint16_t  usByteOffset;
-        uint16_t  usNPreBits;
+        uint16_t  usTmp        = 0;
+        uint16_t  usMask       = 0;
+        uint16_t  usByteOffset = 0;
+        uint16_t  usNPreBits   = 0;
 
         usByteOffset = usStartAddress  / 8 ;
         usNPreBits   = usStartAddress - usByteOffset * 8;
         usMask       = (1 << sNumOfData)  - 1 ;
-        usTmpBuf     = m_ModbusData->pucCoils[usByteOffset];
-        usTmpBuf    |= m_ModbusData->pucCoils[usByteOffset + 1] << 8;
+        usTmp        = (uint16_t)m_ModbusData->pucCoils[usByteOffset];
+        usTmp       |= (uint16_t)m_ModbusData->pucCoils[usByteOffset + 1] << 8;
         // throw away unneeded bits
-        usTmpBuf     = usTmpBuf >> usNPreBits;
-       // mask away bits above the requested bitfield
-        usTmpBuf     = usTmpBuf & usMask;
-        *pucBuffer++ = (uint8_t)usTmpBuf;
+        usTmp        = usTmp >> usNPreBits;
+       // mask away bits above the requested bit field
+        usTmp        = usTmp & usMask;
+        *pucBuffer++ = (uint8_t)usTmp;
 
         sNumOfData         = sNumOfData - 8;
         usDataStartAddress = usDataStartAddress - 8;
@@ -535,8 +537,8 @@ static uint16_t ReadDiscreteInputs(const uint8_t *pucQuery, uint8_t *pucResponse
 
     usDataStartAddress  = (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET] << 8);
     usDataStartAddress |= (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET + 1]);
-    sNumOfData          = (uint16_t)(pucQuery[NO_OF_DATA_OFFSET] << 8);
-    sNumOfData         |= (uint16_t)(pucQuery[NO_OF_DATA_OFFSET + 1]);
+    sNumOfData          = (int16_t)(pucQuery[NO_OF_DATA_OFFSET] << 8);
+    sNumOfData         |= (int16_t)(pucQuery[NO_OF_DATA_OFFSET + 1]);
 
     usStartAddress = usDataStartAddress - m_ModbusData->usDiscreteInputStartAddress;
 
@@ -549,6 +551,7 @@ static uint16_t ReadDiscreteInputs(const uint8_t *pucQuery, uint8_t *pucResponse
     {
         usMbapLen = usMbapLen + 1;
     }
+
     //Modify Information in MBAP Header for response
     pucResponse[MBAP_LEN_OFFSET]     = (uint16_t)(usMbapLen << 8);
     pucResponse[MBAP_LEN_OFFSET + 1] = (uint16_t)(usMbapLen & 0xFF);
@@ -565,21 +568,21 @@ static uint16_t ReadDiscreteInputs(const uint8_t *pucQuery, uint8_t *pucResponse
 
     while (sNumOfData > 0)
     {
-        uint16_t  usTmpBuf;
-        uint16_t  usMask;
-        uint16_t  usByteOffset;
-        uint16_t  usNPreBits;
+        uint16_t  usTmp        = 0;
+        uint16_t  usMask       = 0;
+        uint16_t  usByteOffset = 0;
+        uint16_t  usNPreBits   = 0;
 
         usByteOffset = usStartAddress  / 8 ;
         usNPreBits   = usStartAddress - usByteOffset * 8;
         usMask       = (1 << sNumOfData)  - 1 ;
-        usTmpBuf     = m_ModbusData->pucDiscreteInputs[usByteOffset];
-        usTmpBuf    |= m_ModbusData->pucDiscreteInputs[usByteOffset + 1] << 8;
+        usTmp        = (uint16_t)m_ModbusData->pucDiscreteInputs[usByteOffset];
+        usTmp       |= (uint16_t)m_ModbusData->pucDiscreteInputs[usByteOffset + 1] << 8;
         // throw away unneeded bits
-        usTmpBuf     = usTmpBuf >> usNPreBits;
-       // mask away bits above the requested bitfield
-        usTmpBuf     = usTmpBuf & usMask;
-        *pucBuffer++ = (uint8_t)usTmpBuf;
+        usTmp        = usTmp >> usNPreBits;
+        // mask away bits above the requested bit field
+        usTmp        = usTmp & usMask;
+        *pucBuffer++ = (uint8_t)usTmp;
 
         sNumOfData         = sNumOfData - 8;
         usDataStartAddress = usDataStartAddress - 8;
@@ -617,8 +620,8 @@ static uint16_t ReadHoldingRegisters(const uint8_t *pucQuery, uint8_t *pucRespon
     memcpy(pucResponse, pucQuery, (MBAP_HEADER_LEN + 1));
 
     //Modify Information in MBAP Header for response
-    pucResponse[MBAP_LEN_OFFSET]     = (uint16_t)(usPduLength << 8);
-    pucResponse[MBAP_LEN_OFFSET + 1] = (uint16_t)(usPduLength & 0xFF);
+    pucResponse[MBAP_LEN_OFFSET]     = (uint8_t)(usPduLength << 8);
+    pucResponse[MBAP_LEN_OFFSET + 1] = (uint8_t)(usPduLength & 0xFF);
     pucResponse[BYTE_COUNT_OFFSET]   = (uint8_t)(usNumOfData * 2);
     pucRegBuffer                     = &pucResponse[DATA_VALUES_OFFSET];
 
@@ -664,8 +667,8 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
     memcpy(pucResponse, pucQuery, (MBAP_HEADER_LEN + 1));
 
     //Modify Information in MBAP Header for response
-    pucResponse[MBAP_LEN_OFFSET]     = (uint16_t)(usMbapLength << 8);
-    pucResponse[MBAP_LEN_OFFSET + 1] = (uint16_t)(usMbapLength & 0xFF);
+    pucResponse[MBAP_LEN_OFFSET]     = (uint8_t)(usMbapLength << 8);
+    pucResponse[MBAP_LEN_OFFSET + 1] = (uint8_t)(usMbapLength & 0xFF);
     pucResponse[BYTE_COUNT_OFFSET]   = (uint8_t)(usNumOfData * 2);
     pucRegBuffer                     = &pucResponse[DATA_VALUES_OFFSET];
 
@@ -716,18 +719,18 @@ static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
     }
     else
     {
-        //discard
+        return usResponseLen;
     }
 
     //Copy same data in response as received in query
     usResponseLen = WRITE_SINGLE_COIL_RESPONSE_LEN;
     memcpy(pucResponse, pucQuery, usResponseLen);
 
-    uint16_t  usTmp;
-    uint16_t  usMask;
-    uint16_t  usByteOffset;
-    uint16_t  usNPreBits;
-    uint8_t   ucNumOfBits = 1;
+    uint16_t  usTmp        = 0;
+    uint16_t  usMask       = 0;
+    uint16_t  usByteOffset = 0;
+    uint16_t  usNPreBits   = 0;
+    uint8_t   ucNumOfBits  = 1;
 
     // Calculate byte offset for first byte containing the bit values starting
     // at usBitOffset
@@ -791,9 +794,9 @@ static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *puc
     else
     {
         usPduLength                                 = MBAP_LEN_IN_EXCEPTION_PACKET;
-        pucResponse[MBAP_LEN_OFFSET]                = (uint16_t)(usPduLength << 8);
-        pucResponse[MBAP_LEN_OFFSET + 1]            = (uint16_t)(usPduLength & 0xFF);
-        pucResponse[EXCEPTION_FUNCTION_CODE_OFFSET] = 0x80 + pucQuery[FUNCTION_CODE_OFFSET];
+        pucResponse[MBAP_LEN_OFFSET]                = (uint8_t)(usPduLength << 8);
+        pucResponse[MBAP_LEN_OFFSET + 1]            = (uint8_t)(usPduLength & 0xFF);
+        pucResponse[EXCEPTION_FUNCTION_CODE_OFFSET] = EXCEPTION_START_FUNCTION_CODE + pucQuery[FUNCTION_CODE_OFFSET];
         pucResponse[EXCEPTION_TYPE_OFFSET]          = ILLEGAL_DATA_VALUE;
         usResponseLen                               = EXCEPTION_PACKET_LEN;
     }
@@ -812,7 +815,7 @@ static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *puc
 static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
-    uint16_t usNumOfData        = 0;
+    int16_t  sNumOfData         = 0;
     uint16_t usMbapLength       = 0;
     uint16_t usStartAddress     = 0;
     uint16_t usResponseLen      = 0;
@@ -820,9 +823,26 @@ static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse
 
     usDataStartAddress  = (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET] << 8);
     usDataStartAddress |= (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET + 1]);
-    usNumOfData         = (uint16_t)(pucQuery[NO_OF_DATA_OFFSET] << 8);
-    usNumOfData        |= (uint16_t)(pucQuery[NO_OF_DATA_OFFSET + 1]);
+    sNumOfData          = (uint16_t)(pucQuery[NO_OF_DATA_OFFSET] << 8);
+    sNumOfData         |= (uint16_t)(pucQuery[NO_OF_DATA_OFFSET + 1]);
     ucByteCount         = pucQuery[WRITE_BYTE_COUNT_OFFSET];
+
+    int16_t sTmp = 0;
+
+    if (0 != (sNumOfData & MULTIPLE_OF_8))
+    {
+        sTmp = (sNumOfData / 8) + 1;
+    }
+    else
+    {
+        sTmp = sNumOfData / 8;
+    }
+
+    //check byte count
+    if (ucByteCount != sTmp)
+    {
+        return usResponseLen;
+    }
 
     usStartAddress = (usDataStartAddress - m_ModbusData->usCoilsStartAddress);
     usMbapLength   = MBAP_LEN_WRITE_COILS;
@@ -835,15 +855,14 @@ static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse
     pucResponse[MBAP_LEN_OFFSET + 1]     = (uint8_t)(usMbapLength & 0xFF);
     pucResponse[WRITE_START_ADDRESS]     = (uint8_t)(usDataStartAddress << 8);
     pucResponse[WRITE_START_ADDRESS + 1] = (uint8_t)(usDataStartAddress & 0xFF);
-    pucResponse[WRITE_NUM_OF_DATA ]      = (uint8_t)(usNumOfData << 8);
-    pucResponse[WRITE_NUM_OF_DATA + 1]   = (uint8_t)(usNumOfData & 0xFF);
+    pucResponse[WRITE_NUM_OF_DATA ]      = (uint8_t)(sNumOfData << 8);
+    pucResponse[WRITE_NUM_OF_DATA + 1]   = (uint8_t)(sNumOfData & 0xFF);
 
     usResponseLen = WRITE_COILS_RESPONSE_LEN;
 
     uint8_t ucCount = WRITE_VALUE_OFFSET;
-    int16_t iNumOfCoils = (int16_t)usNumOfData;
 
-    while (iNumOfCoils > 0)
+    while (sNumOfData > 0)
     {
         uint16_t  usTmp;
         uint16_t  usMask;
@@ -852,7 +871,7 @@ static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse
         uint8_t   ucNumOfBits;
         uint16_t  usCoilValue;
 
-        ucNumOfBits = (iNumOfCoils > 8 ? 8 : iNumOfCoils);
+        ucNumOfBits = (sNumOfData > 8 ? 8 : sNumOfData);
 
         // Calculate byte offset for first byte containing the bit values starting
         // at usBitOffset
@@ -861,7 +880,7 @@ static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse
         // How many bits precede our bits to set
         usNPreBits = usStartAddress - usByteOffset * 8;
 
-        usCoilValue = pucQuery[ucCount];
+        usCoilValue = (uint16_t)pucQuery[ucCount];
 
         // Move bit field into position over bits to set
         usCoilValue <<= usNPreBits;
@@ -871,8 +890,8 @@ static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse
         usMask <<= usStartAddress - usByteOffset * 8;
 
         // copy bits into temporary storage
-        usTmp  = m_ModbusData->pucCoils[usByteOffset];
-        usTmp |= m_ModbusData->pucCoils[usByteOffset + 1] << 8;
+        usTmp  = (uint16_t)m_ModbusData->pucCoils[usByteOffset];
+        usTmp |= (uint16_t)m_ModbusData->pucCoils[usByteOffset + 1] << 8;
 
         // Zero out bit field bits and then or value bits into them
         usTmp = (usTmp & (~usMask)) | usCoilValue;
@@ -881,7 +900,7 @@ static uint16_t WriteMultipleCoils(const uint8_t *pucQuery, uint8_t *pucResponse
         m_ModbusData->pucCoils[usByteOffset]     = (uint8_t)(usTmp & 0xFF);
         m_ModbusData->pucCoils[usByteOffset + 1] = (uint8_t)(usTmp >> 8);
 
-        iNumOfCoils = iNumOfCoils - 8;
+        sNumOfData = sNumOfData - 8;
 
         ucCount++;
     }
@@ -915,6 +934,7 @@ static uint16_t WriteMultipleHoldingRegisters(const uint8_t *pucQuery, uint8_t *
     if (ucByteCount != (usNumOfData * 2) )
     {
         usResponseLen = 0;
+        return usResponseLen;
     }
 
     usStartAddress = (usDataStartAddress - m_ModbusData->usHoldingRegisterStartAddress);
@@ -937,13 +957,12 @@ static uint16_t WriteMultipleHoldingRegisters(const uint8_t *pucQuery, uint8_t *
 
     while (usNumOfData > 0)
     {
-        int16_t usValue;
+        uint16_t usValue;
 
         usValue  = (uint16_t)(pucQuery[WRITE_VALUE_OFFSET + ucCount] << 8);
         ucCount++;
         usValue |= (uint16_t)(pucQuery[WRITE_VALUE_OFFSET + ucCount]);
         m_ModbusData->psHoldingRegisters[usStartAddress] = usValue;
-
         ucCount++;
         usStartAddress++;
         usNumOfData--;
