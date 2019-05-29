@@ -1,16 +1,25 @@
-#travis configuration for coverage testing
-language: c
+stages:
+  - static analysis
+  - unit tests
+  
+jobs:
+  include:
+    - stage: static analysis             
+      script:
+      - sudo apt-get update -qq
+      - sudo apt-get install -qq cppcheck
+      - cppcheck --quiet --error-exitcode=1 . 
 
-#sudo: false # only for faster builds
-
-install:
-- cd ${TRAVIS_BUILD_DIR}
-# install latest LCOV (1.9 was failing for me) [1]
-
-- wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.11.orig.tar.gz
-- tar xf lcov_1.11.orig.tar.gz
-- sudo make -C lcov-1.11/ install
-
-# install lcov to coveralls conversion + upload tool
-- gem install coveralls-lcov
-
+    - stage: unit tests
+      script:
+      - git clone git://github.com/cpputest/cpputest.git
+      - cd cpputest
+      - cd cpputest_build
+      - autoreconf .. -i
+      - ../configure
+      - make -j
+      - cp -r lib ../lib
+      - cd ..
+      - cd ..
+      - cd tests && make -j
+ 
