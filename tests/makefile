@@ -87,10 +87,6 @@ CPPUTEST_LIB_DIR = build/1/2
 # build problem.  You would add this flag setting
 #     CPPUTEST_CXXFLAGS += -Wno-c++14-compat
 
-#gcov enable
-CPPUTEST_USE_GCOV=Y
-
-
 ifeq ($(shell $(CC) -v 2>&1 | grep -c "clang"), 1)
 CPPUTEST_WARNINGFLAGS += -Wno-unknown-warning-option
 CPPUTEST_WARNINGFLAGS += -Wno-covered-switch-default
