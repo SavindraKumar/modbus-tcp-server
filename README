@@ -1,0 +1,29 @@
+/**
+
+@mainpage Modbus TCP Application
+@author Savindra Kumar(savindran1989@gmail.com)
+
+This code implements modbus tcp server application.
+The modbus application is kept under mbap folder.
+This code supports below function code
+1. Read Coils
+2. Read Discrete Inputs
+3. Read Input Registers
+4. Read Holding Registers
+5. Write Single Coil
+6. Write Single Holding Registers
+7. Write Multiple Coils
+8. Write Multiple Holding Registers
+
+This code can be configured by macros defined in mbap_conf.h and mbap_debug.h
+
+Each function code can be enable/disable by macro defined in mbap_conf.h
+Debug msg and warning can be controlled macros defined in mbap_debug.h
+
+Modbus data should be intialised before using the stack. This should be done by passing
+ModbusData_t structure into mbap_DataInit function.
+
+Received query and length is passed into mbap_ProcessRequest function which gives response length
+and copies response into response buffer.
+
+*/
