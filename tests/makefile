@@ -25,7 +25,6 @@ SRC_FILES = \
 # These files are compiled and put into a the
 # ProductionCode library and links with the test runner
 SRC_DIRS =  \
-   ../src \
    ../src/mbap \   
 
 # --- TEST_SRC_FILES ---
