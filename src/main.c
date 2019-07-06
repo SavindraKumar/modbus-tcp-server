@@ -20,6 +20,7 @@
 //user defined files
 #include "mbap_conf.h"
 #include "mbap_user.h"
+#include "tcp.h"
 
 //****************************************************************************/
 //                           Defines and typedefs
