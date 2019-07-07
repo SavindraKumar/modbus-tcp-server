@@ -85,7 +85,7 @@ TEST(Module, illegal_input_registers_address)
     memcpy(pucQuery, ucQueryBuf, QUERY_LEN);
     
     CHECK_EQUAL(ucResponseLen, mbap_ProcessRequest(pucQuery, QUERY_LEN, pucResponse));
-    CHECK_EQUAL(ILLEGAL_DATA_ADDRESS, pucResponse[MBT_BYTE_COUNT_OFFSET] );	
+    CHECK_EQUAL(eILLEGAL_DATA_ADDRESS, pucResponse[MBT_BYTE_COUNT_OFFSET] );	
 }
 
 TEST(Module, read_holding_registers)
@@ -129,7 +129,7 @@ TEST(Module, illegal_holding_registers_address)
     memcpy(pucQuery, ucQueryBuf, QUERY_LEN);
     
     CHECK_EQUAL(ucResponseLen, mbap_ProcessRequest(pucQuery, QUERY_LEN, pucResponse));
-    CHECK_EQUAL(ILLEGAL_DATA_ADDRESS, pucResponse[MBT_BYTE_COUNT_OFFSET] );	
+    CHECK_EQUAL(eILLEGAL_DATA_ADDRESS, pucResponse[MBT_BYTE_COUNT_OFFSET] );	
 }
 
 TEST(Module, illegal_function_code)
@@ -142,7 +142,7 @@ TEST(Module, illegal_function_code)
     memcpy(pucQuery, ucQueryBuf, QUERY_LEN);
     
     CHECK_EQUAL(ucResponseLen, mbap_ProcessRequest(pucQuery, QUERY_LEN, pucResponse));
-    CHECK_EQUAL(ILLEGAL_FUNCTION_CODE, pucResponse[MBT_BYTE_COUNT_OFFSET] );
+    CHECK_EQUAL(eILLEGAL_FUNCTION_CODE, pucResponse[MBT_BYTE_COUNT_OFFSET] );
 }
 
 #if 0
