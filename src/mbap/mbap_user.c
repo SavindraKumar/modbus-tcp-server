@@ -229,36 +229,22 @@ static void WriteHoldingRegisters(uint16_t usStartAddress,
                                   uint16_t usNumOfData,
                                   const uint8_t *pucWriteBuf)
 {
-    uint16_t usValue = 0;
+    MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Write Holding Registers User function\r\n");
 
-    if (1 == usNumOfData)
+    uint8_t  ucCount = 0;
+
+    while (usNumOfData > 0)
     {
-        MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Write Holding Register User function\r\n");
+        uint16_t usValue = 0;
 
-        usValue     = (uint16_t)(pucWriteBuf[0] << 8);
-        usValue    |= (uint16_t)(pucWriteBuf[1]);
-
+        usValue  = (uint16_t)(pucWriteBuf[ucCount] << 8);
+        ucCount++;
+        usValue |= (uint16_t)(pucWriteBuf[ucCount]);
         g_sHoldingRegsBuf[usStartAddress] = (int16_t)usValue;
-    }
-    else
-    {
-        MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Write Holding Registers User function\r\n");
 
-        uint8_t  ucCount = 0;
-
-        while (usNumOfData > 0)
-        {
-            uint16_t usValue = 0;
-
-            usValue  = (uint16_t)(pucWriteBuf[ucCount] << 8);
-            ucCount++;
-            usValue |= (uint16_t)(pucWriteBuf[ucCount]);
-            g_sHoldingRegsBuf[usStartAddress] = (int16_t)usValue;
-
-            ucCount++;
-            usStartAddress++;
-            usNumOfData--;
-        }
+        ucCount++;
+        usStartAddress++;
+        usNumOfData--;
     }
 }//end WriteHoldingRegisters
 
@@ -267,6 +253,8 @@ static void WriteCoils(uint16_t usStartAddress,
                        const uint8_t *pucWriteBuf)
 {
     uint8_t ucCount = 0;
+
+    MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Write Coils User function\r\n");
 
     while (sNumOfData > 0)
     {
