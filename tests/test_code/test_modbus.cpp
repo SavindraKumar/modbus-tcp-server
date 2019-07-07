@@ -226,13 +226,29 @@ TEST(Module, WriteSingleHoldingRegisterTest)
     //check received value from sent value
     CHECK_EQUAL(sSentValue, sReceivedValue);
 }
+TEST(Module, IllegalAddressInWriteSingleHoldingRegisterTest)
+{
+    uint8_t ucQueryBuf[QUERY_LEN] = {0, 0, 0, 0, 0, 6, 1, 6, 0, 20, 0, 200};;
+    
+    memcpy(pucQuery, ucQueryBuf, QUERY_LEN);
+
+    //function under test
+    uint8_t usRecResponseLen      = mbap_ProcessRequest(pucQuery, QUERY_LEN, pucResponse);
+    //expected response length
+    uint8_t usExpectedResponseLen = MBT_EXCEPTION_PACKET_LEN;
+    
+    //check return value from test function
+    CHECK_EQUAL(usExpectedResponseLen, usRecResponseLen);
+    //check type of error from response
+    CHECK_EQUAL(eILLEGAL_DATA_ADDRESS, pucResponse[MBT_BYTE_COUNT_OFFSET] );
+}
 
 TEST(Module, IllegalDataValueInSingleHoldingRegisterWriteTest)
 {
     uint8_t ucQueryBuf[QUERY_LEN] = {0, 0, 0, 0, 0, 6, 1, 6, 0, 1, 0, 201};
-    
+
     memcpy(pucQuery, ucQueryBuf, QUERY_LEN);
-  
+
     //function under test
     uint8_t usRecResponseLen      = mbap_ProcessRequest(pucQuery, QUERY_LEN, pucResponse);
     //expected response length
@@ -244,45 +260,107 @@ TEST(Module, IllegalDataValueInSingleHoldingRegisterWriteTest)
     CHECK_EQUAL(eILLEGAL_DATA_VALUE, pucResponse[MBT_BYTE_COUNT_OFFSET] );
 }
 
+TEST(Module, WriteMultipleHoldingRegisterTest)
+{
+    uint8_t ucQueryBuf[17] = {0, 0, 0, 0, 0, 11, 1, 16, 0, 0, 0, 2 ,4, 0, 200, 0, 199};
+
+    memcpy(pucQuery, ucQueryBuf, 17);
+
+    //function under test
+    uint8_t usRecResponseLen      = mbap_ProcessRequest(pucQuery, 17, pucResponse);
+    //expected response length
+    uint8_t usExpectedResponseLen = MBAP_HEADER_LEN + 5;
+
+    //check return value from test function
+    CHECK_EQUAL(usExpectedResponseLen, usRecResponseLen);    
+}
+
+TEST(Module, IllegalAddressInWriteMultipleHoldingRegisterTest)
+{
+    uint8_t ucQueryBuf[17] = {0, 0, 0, 0, 0, 11, 1, 16, 0, 0, 0, 20 ,4, 0, 200, 0, 199};
+
+    memcpy(pucQuery, ucQueryBuf, 17);
+
+    //function under test
+    uint8_t usRecResponseLen      = mbap_ProcessRequest(pucQuery, 17, pucResponse);
+    //expected response length
+    uint8_t usExpectedResponseLen = MBT_EXCEPTION_PACKET_LEN;
+
+    //check return value from test function
+    CHECK_EQUAL(usExpectedResponseLen, usRecResponseLen);
+    //check type of error from response
+    CHECK_EQUAL(eILLEGAL_DATA_ADDRESS, pucResponse[MBT_BYTE_COUNT_OFFSET] );	
+}
+
+TEST(Module, IllegalDataValueInMultipleHoldingRegisterWriteTest)
+{
+    uint8_t ucQueryBuf[17] = {0, 0, 0, 0, 0, 11, 1, 16, 0, 0, 0, 2 ,4, 0, 200, 0, 201};
+
+    memcpy(pucQuery, ucQueryBuf, 17);
+
+    //function under test
+    uint8_t usRecResponseLen      = mbap_ProcessRequest(pucQuery, 17, pucResponse);
+    //expected response length
+    uint8_t usExpectedResponseLen = MBT_EXCEPTION_PACKET_LEN;
+
+    //check return value from test function
+    CHECK_EQUAL(usExpectedResponseLen, usRecResponseLen);
+    //check error type
+    CHECK_EQUAL(eILLEGAL_DATA_VALUE, pucResponse[MBT_BYTE_COUNT_OFFSET] );    
+}
+
+TEST(Module, WrongByteCoundInPduInMultipleHoldingRegistersWriteTest)
+{
+    uint8_t ucQueryBuf[17] = {0, 0, 0, 0, 0, 11, 1, 16, 0, 0, 0, 2 ,5, 0, 200, 0, 201};
+
+    memcpy(pucQuery, ucQueryBuf, 17);
+
+    //function under test
+    uint8_t usRecResponseLen  = mbap_ProcessRequest(pucQuery, 17, pucResponse);
+
+    //check return value from test function
+    CHECK_EQUAL(0, usRecResponseLen); 
+}
+
 TEST(Module, ReadDiscreteInputsTest)
 {
     uint8_t ucQueryBuf[QUERY_LEN] = {0, 0, 0, 0, 0, 6, 1, 2, 0, 0, 0, 3};
     uint8_t usExpectedResponseLen = 0;
     uint8_t ucByteCount           = 0;
     uint16_t usNumOfData          = 0;
-    
+
     //set up test
     usNumOfData           = (uint16_t)(ucQueryBuf[NO_OF_DATA_OFFSET] << 8);
     usNumOfData          |= (uint16_t)(ucQueryBuf[NO_OF_DATA_OFFSET + 1]);
     usExpectedResponseLen = MBAP_HEADER_LEN  + (usNumOfData / 8) + 2;
     ucByteCount           = usNumOfData / 8;
-    
+
     if (0 != ucQueryBuf[11])
     {
         usExpectedResponseLen = usExpectedResponseLen + 1;
         ucByteCount   = ucByteCount + 1;	
     }
-    
+
     memcpy(pucQuery, ucQueryBuf, QUERY_LEN);
-    
+
     //function under test
     uint8_t usRecResponseLen      = mbap_ProcessRequest(pucQuery, QUERY_LEN, pucResponse);
-  
+
     //check return value from test function
     CHECK_EQUAL(usExpectedResponseLen, usRecResponseLen);
     //check byte count from response
     CHECK_EQUAL(ucByteCount, pucResponse[MBT_BYTE_COUNT_OFFSET]);
-    
+
     //check received discrete inputs values from user data
     for (uint8_t ucCount = 0; ucCount < MAX_DISCRETE_INPUTS; ucCount++)
     {
         uint8_t  ucReceivedValue = 0;
         uint16_t usByteOffset    = 0;
         uint16_t usDiscreteBit   = 0;
-        
+
         usByteOffset  = ucCount / 8 ;
         usDiscreteBit = ucCount - usByteOffset * 8;
-        
+
         ucReceivedValue = (uint8_t)(pucResponse[MBT_DATA_VALUES_OFFSET + usByteOffset]);	
 
         CHECK_EQUAL(g_ucDiscreteInputsBuf[usByteOffset] & (1 << usDiscreteBit) , ucReceivedValue & (1 << usDiscreteBit));	
@@ -292,14 +370,14 @@ TEST(Module, ReadDiscreteInputsTest)
 TEST(Module, IllegalAddressInReadDiscreteInputsTest)
 {
     uint8_t ucQueryBuf[QUERY_LEN] = {0, 0, 0, 0, 0, 6, 1, 2, 0, 0, 0, 16};
-    
+
     memcpy(pucQuery, ucQueryBuf, QUERY_LEN);
-    
+
     //function under test
     uint8_t usRecResponseLen      = mbap_ProcessRequest(pucQuery, QUERY_LEN, pucResponse);
     //expected response length
     uint8_t usExpectedResponseLen = MBT_EXCEPTION_PACKET_LEN;
-    
+
     //check return value from test function
     CHECK_EQUAL(usExpectedResponseLen, usRecResponseLen);
     //check error type
@@ -312,19 +390,19 @@ TEST(Module, ReadCoilsTest)
     uint8_t usExpectedResponseLen = 0;
     uint8_t ucByteCount           = 0;
     uint16_t usNumOfData          = 0;
-    
+
     //set up test
     usNumOfData            = (uint16_t)(ucQueryBuf[NO_OF_DATA_OFFSET] << 8);
     usNumOfData           |= (uint16_t)(ucQueryBuf[NO_OF_DATA_OFFSET + 1]);
     usExpectedResponseLen  = MBAP_HEADER_LEN  + (usNumOfData / 8) + 2;
     ucByteCount            = usNumOfData / 8;
-    
+
     if (0 != ucQueryBuf[11])
     {
         usExpectedResponseLen = usExpectedResponseLen + 1;
         ucByteCount           = ucByteCount + 1;
     }
-    
+
     memcpy(pucQuery, ucQueryBuf, QUERY_LEN);
 
     //function under test
