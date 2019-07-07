@@ -25,9 +25,9 @@
 #define HOLDING_REGISTER_START_ADDRESS    (0u)
 #define MAX_HOLDING_REGISTERS             (15u)
 #define DISCRETE_INPUTS_START_ADDRESS     (0u)
-#define MAX_DISCRETE_INPUTS               (3u)
+#define MAX_DISCRETE_INPUTS               (15u)
 #define COILS_START_ADDRESS               (0u)
-#define MAX_COILS                         (3u)
+#define MAX_COILS                         (15u)
 #define DISCRETE_INPUT_BUF_SIZE           (MAX_DISCRETE_INPUTS / 8u + 1u)
 #define COILS_BUF_SIZE                    (MAX_COILS / 8u + 1u)
 
