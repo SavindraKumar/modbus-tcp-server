@@ -111,7 +111,7 @@ void mu_Init(void)
 	ModbusData.ptfnReadCoils                 = ReadCoils;
 
 	//pass modbus data data pointer to modbus tcp application
-    mbap_DataInit(&ModbusData);
+    mbap_DataInit(ModbusData);
 }
 
 //****************************************************************************/

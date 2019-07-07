@@ -92,7 +92,7 @@ typedef struct ModbusData
 //! @param[in]  ModbusData  Modbus data structure
 //! @return     None
 //
-void mbap_DataInit(const ModbusData_t *ModbusData);
+void mbap_DataInit(ModbusData_t ModbusData);
 
 //
 //! @brief Process Modbus TCP Application request
