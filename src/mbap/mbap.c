@@ -722,7 +722,6 @@ static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *puc
 {
     uint16_t usDataStartAddress = 0;
     uint16_t usRegisterValue    = 0;
-    uint16_t usPduLength        = 0;
     uint16_t usStartAddress     = 0;
     uint16_t usResponseLen      = 0;
 
@@ -745,9 +744,13 @@ static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *puc
     }
     else
     {
-        usPduLength                                 = MBAP_LEN_IN_EXCEPTION_PACKET;
-        pucResponse[MBAP_LEN_OFFSET]                = (uint8_t)(usPduLength << 8);
-        pucResponse[MBAP_LEN_OFFSET + 1]            = (uint8_t)(usPduLength & 0xFF);
+        uint16_t usPduLen = 0;
+
+        MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal data value\r\n");
+
+        usPduLen                                    = MBAP_LEN_IN_EXCEPTION_PACKET;
+        pucResponse[MBAP_LEN_OFFSET]                = (uint8_t)(usPduLen << 8);
+        pucResponse[MBAP_LEN_OFFSET + 1]            = (uint8_t)(usPduLen & 0xFF);
         pucResponse[EXCEPTION_FUNCTION_CODE_OFFSET] = EXCEPTION_START_FUNCTION_CODE + pucQuery[FUNCTION_CODE_OFFSET];
         pucResponse[EXCEPTION_TYPE_OFFSET]          = eILLEGAL_DATA_VALUE;
         usResponseLen                               = EXCEPTION_PACKET_LEN;
@@ -864,6 +867,7 @@ static uint16_t WriteMultipleHoldingRegisters(const uint8_t *pucQuery, uint8_t *
     uint16_t usStartAddress     = 0;
     uint16_t usResponseLen      = 0;
     uint8_t  ucByteCount        = 0;
+    bool     bException         = false;
 
     usDataStartAddress  = (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET] << 8);
     usDataStartAddress |= (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET + 1]);
@@ -891,11 +895,49 @@ static uint16_t WriteMultipleHoldingRegisters(const uint8_t *pucQuery, uint8_t *
     pucResponse[WRITE_NUM_OF_DATA ]      = (uint8_t)(usNumOfData << 8);
     pucResponse[WRITE_NUM_OF_DATA + 1]   = (uint8_t)(usNumOfData & 0xFF);
 
-    usResponseLen = WRITE_HOLDING_REGISTERS_RESPONSE_LEN;
+    uint8_t  ucCount           = 0;
+    uint16_t usTmpStartAddress = usStartAddress;
+    uint16_t usTmpNumOfData    = usNumOfData;
 
-    const uint8_t *pucRegBuf = &pucQuery[WRITE_VALUE_OFFSET];
+    while (usTmpNumOfData > 0)
+    {
+        uint16_t usValue = 0;
 
-    m_tModbusData.ptfnWriteHoldingRegisters(usStartAddress, usNumOfData, pucRegBuf);
+        usValue  = (uint16_t)(pucQuery[WRITE_VALUE_OFFSET + ucCount] << 8);
+        ucCount++;
+        usValue |= (uint16_t)(pucQuery[WRITE_VALUE_OFFSET + ucCount]);
+        ucCount++;
+
+        if ( !((m_tModbusData.psHoldingRegisterHigherLimit[usStartAddress] >= (int16_t) usValue) &&
+            (m_tModbusData.psHoldingRegisterLowerLimit[usStartAddress] <= (int16_t) usValue)))
+        {
+            bException = true;
+        }
+
+        usTmpStartAddress++;
+        usTmpNumOfData--;
+    }
+
+    if (bException)
+    {
+        uint16_t usPduLen = 0;
+
+        MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal data value\r\n");
+
+        usPduLen                                    = MBAP_LEN_IN_EXCEPTION_PACKET;
+        pucResponse[MBAP_LEN_OFFSET]                = (uint8_t)(usPduLen << 8);
+        pucResponse[MBAP_LEN_OFFSET + 1]            = (uint8_t)(usPduLen & 0xFF);
+        pucResponse[EXCEPTION_FUNCTION_CODE_OFFSET] = EXCEPTION_START_FUNCTION_CODE + pucQuery[FUNCTION_CODE_OFFSET];
+        pucResponse[EXCEPTION_TYPE_OFFSET]          = eILLEGAL_DATA_VALUE;
+        usResponseLen                               = EXCEPTION_PACKET_LEN;
+    }
+    else
+    {
+        const uint8_t *pucRegBuf = &pucQuery[WRITE_VALUE_OFFSET];
+
+        usResponseLen = WRITE_HOLDING_REGISTERS_RESPONSE_LEN;
+        m_tModbusData.ptfnWriteHoldingRegisters(usStartAddress, usNumOfData, pucRegBuf);
+    }
 
     return (usResponseLen);
 }//end WriteMultipleHoldingRegisters
