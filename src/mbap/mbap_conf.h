@@ -21,23 +21,23 @@
 //                           Constants and typedefs
 //****************************************************************************
 typedef void(*pfnReadDiscreteInputs)(uint16_t usStartAddress,
-	                                 int16_t usNumOfData,
-	                                 uint8_t *pucRecBuf);
+                                     int16_t usNumOfData,
+                                     uint8_t *pucRecBuf);
 
 typedef void(*pfnReadCoils)(uint16_t usStartAddress,
-	                        int16_t usNumOfData,
-	                        uint8_t *pucRecBuf);
+                            int16_t usNumOfData,
+                            uint8_t *pucRecBuf);
 
 typedef void(*pfnReadInputRegisters)(uint16_t usStartAddress,
                                      uint16_t usNumOfData,
                                      uint8_t *pucRecBuf);
 
 typedef void(*pfnReadHoldingRegisters)(uint16_t usStartAddress,
-	                                   uint16_t usNumOfData,
-	                                   uint8_t *pucRecBuf);
+                                       uint16_t usNumOfData,
+                                       uint8_t *pucRecBuf);
 
 typedef void(*pfnWriteSingleHoldingRegister)(uint16_t usStartAddress,
-	                                         uint16_t usRegisterValue);
+                                             uint16_t usRegisterValue);
 typedef struct ModbusData
 {
     int16_t                       *psHoldingRegisterLowerLimit;  //!<Pointer to Holding Register Lower Limits
@@ -51,9 +51,9 @@ typedef struct ModbusData
     uint16_t                      usMaxCoils;                    //!<Number of Coils
     uint16_t                      usMaxDiscreteInputs;           //!<Number of Discrete Inputs
     pfnReadInputRegisters         ptfnReadInputRegisters;        //!<Read Input Registers function
-	pfnReadHoldingRegisters       ptfnReadHoldingRegisters;      //!<Read Holding Registers function
-	pfnReadDiscreteInputs         ptfnReadDiscreteInputs;        //!<Read Discrete Inputs function
-	pfnReadCoils                  ptfnReadCoils;                 //!<Read Coils function
+    pfnReadHoldingRegisters       ptfnReadHoldingRegisters;      //!<Read Holding Registers function
+    pfnReadDiscreteInputs         ptfnReadDiscreteInputs;        //!<Read Discrete Inputs function
+    pfnReadCoils                  ptfnReadCoils;                 //!<Read Coils function
 } ModbusData_t;
 
 //! @brief Enable or Disable Read Coils  Function Code

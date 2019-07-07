@@ -51,8 +51,8 @@ int16_t g_sHoldingRegsHigherLimitBuf[MAX_HOLDING_REGISTERS] = {200, 200, 200};
 //! @return      None
 //
 static void ReadDiscreteInputs(uint16_t usStartAddress,
-	                           int16_t sNumOfData,
-	                           uint8_t *pucRecBuf);
+                               int16_t sNumOfData,
+                               uint8_t *pucRecBuf);
 
 //
 //! @brief Read coils from user data
@@ -62,8 +62,8 @@ static void ReadDiscreteInputs(uint16_t usStartAddress,
 //! @return      None
 //
 static void ReadCoils(uint16_t usStartAddress,
-	                  int16_t sNumOfData,
-	                  uint8_t *pucRecBuf);
+                      int16_t sNumOfData,
+                      uint8_t *pucRecBuf);
 
 //
 //! @brief Read input registers from user data
@@ -73,8 +73,8 @@ static void ReadCoils(uint16_t usStartAddress,
 //! @return      None
 //
 static void ReadInputRegisters(uint16_t usStartAddress,
-	                           uint16_t usNumOfData,
-	                           uint8_t *pucRecBuf);
+                               uint16_t usNumOfData,
+                               uint8_t *pucRecBuf);
 
 //
 //! @brief Read holding registers from user data
@@ -83,8 +83,8 @@ static void ReadInputRegisters(uint16_t usStartAddress,
 //! @param[out]  pucRecBuf      Receive buffer holds holding registers
 //! @return      None
 static void ReadHoldingRegisters(uint16_t usStartAddress,
-	                             uint16_t usNumOfData,
-	                             uint8_t *pucRecBuf);
+                                 uint16_t usNumOfData,
+                                 uint8_t *pucRecBuf);
 
 
 //****************************************************************************/
@@ -105,12 +105,12 @@ void mu_Init(void)
     ModbusData.usMaxDiscreteInputs           = MAX_DISCRETE_INPUTS;
     ModbusData.usCoilsStartAddress           = COILS_START_ADDRESS;
     ModbusData.usMaxCoils                    = MAX_COILS;
-	ModbusData.ptfnReadInputRegisters        = ReadInputRegisters;
-	ModbusData.ptfnReadHoldingRegisters      = ReadHoldingRegisters;
-	ModbusData.ptfnReadDiscreteInputs        = ReadDiscreteInputs;
-	ModbusData.ptfnReadCoils                 = ReadCoils;
+    ModbusData.ptfnReadInputRegisters        = ReadInputRegisters;
+    ModbusData.ptfnReadHoldingRegisters      = ReadHoldingRegisters;
+    ModbusData.ptfnReadDiscreteInputs        = ReadDiscreteInputs;
+    ModbusData.ptfnReadCoils                 = ReadCoils;
 
-	//pass modbus data data pointer to modbus tcp application
+    //pass modbus data data pointer to modbus tcp application
     mbap_DataInit(ModbusData);
 }
 
@@ -118,90 +118,90 @@ void mu_Init(void)
 //                           L O C A L  F U N C T I O N S
 //****************************************************************************/
 static void ReadInputRegisters(uint16_t usStartAddress,
-	                           uint16_t usNumOfData,
-	                           uint8_t *pucRecBuf)
+                               uint16_t usNumOfData,
+                               uint8_t *pucRecBuf)
 {
-	MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Read Input Registers User function\r\n");
+    MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Read Input Registers User function\r\n");
 
-	while (usNumOfData > 0)
-	{
-		*pucRecBuf++ = (uint8_t)(g_sInputRegsBuf[usStartAddress] >> 8);
-		*pucRecBuf++ = (uint8_t)(g_sInputRegsBuf[usStartAddress] & 0xFF);
-		usStartAddress++;
-		usNumOfData--;
-	}
+    while (usNumOfData > 0)
+    {
+        *pucRecBuf++ = (uint8_t)(g_sInputRegsBuf[usStartAddress] >> 8);
+        *pucRecBuf++ = (uint8_t)(g_sInputRegsBuf[usStartAddress] & 0xFF);
+        usStartAddress++;
+        usNumOfData--;
+    }
 }//end ReadInputRegisters
 
 static void ReadDiscreteInputs(uint16_t usStartAddress,
-	                           int16_t sNumOfData,
-	                           uint8_t *pucRecBuf)
+                               int16_t sNumOfData,
+                               uint8_t *pucRecBuf)
 {
-	MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Read Discrete Inputs User function\r\n");
+    MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Read Discrete Inputs User function\r\n");
 
     while (sNumOfData > 0)
-	{
-    	uint16_t  usTmpBuf;
-    	uint16_t  usMask;
-    	uint16_t  usByteOffset;
-    	uint16_t  usNPreBits;
+    {
+        uint16_t  usTmpBuf;
+        uint16_t  usMask;
+        uint16_t  usByteOffset;
+        uint16_t  usNPreBits;
 
-    	usByteOffset = usStartAddress  / 8 ;
-    	usNPreBits   = usStartAddress - usByteOffset * 8;
-    	usMask       = (1 << sNumOfData)  - 1 ;
-    	usTmpBuf     = g_ucDiscreteInputsBuf[usByteOffset];
-    	usTmpBuf    |= g_ucDiscreteInputsBuf[usByteOffset + 1] << 8;
-    	// throw away unneeded bits
-    	usTmpBuf     = usTmpBuf >> usNPreBits;
-    	// mask away bits above the requested bitfield
-    	usTmpBuf     = usTmpBuf & usMask;
-    	*pucRecBuf++ = (uint8_t)usTmpBuf;
+        usByteOffset = usStartAddress  / 8 ;
+        usNPreBits   = usStartAddress - usByteOffset * 8;
+        usMask       = (1 << sNumOfData)  - 1 ;
+        usTmpBuf     = g_ucDiscreteInputsBuf[usByteOffset];
+        usTmpBuf    |= g_ucDiscreteInputsBuf[usByteOffset + 1] << 8;
+        // throw away unneeded bits
+        usTmpBuf     = usTmpBuf >> usNPreBits;
+        // mask away bits above the requested bitfield
+        usTmpBuf     = usTmpBuf & usMask;
+        *pucRecBuf++ = (uint8_t)usTmpBuf;
 
-    	sNumOfData     = sNumOfData - 8;
-    	usStartAddress = usStartAddress - 8;
-	}
+        sNumOfData     = sNumOfData - 8;
+        usStartAddress = usStartAddress - 8;
+    }
 }//end ReadDiscreteInputs
 
 static void ReadCoils(uint16_t usStartAddress,
-	                  int16_t sNumOfData,
-	                  uint8_t *pucRecBuf)
+                      int16_t sNumOfData,
+                      uint8_t *pucRecBuf)
 {
-	MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Read Coils User function\r\n");
+    MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Read Coils User function\r\n");
 
-	while (sNumOfData > 0)
-	{
-		uint16_t  usTmpBuf;
-		uint16_t  usMask;
-		uint16_t  usByteOffset;
-		uint16_t  usNPreBits;
+    while (sNumOfData > 0)
+    {
+        uint16_t  usTmpBuf;
+        uint16_t  usMask;
+        uint16_t  usByteOffset;
+        uint16_t  usNPreBits;
 
-		usByteOffset = usStartAddress / 8;
-		usNPreBits = usStartAddress - usByteOffset * 8;
-		usMask = (1 << sNumOfData) - 1;
-		usTmpBuf  = g_ucCoilsBuf[usByteOffset];
-		usTmpBuf |= g_ucCoilsBuf[usByteOffset + 1] << 8;
-		// throw away unneeded bits
-		usTmpBuf = usTmpBuf >> usNPreBits;
-		// mask away bits above the requested bitfield
-		usTmpBuf = usTmpBuf & usMask;
-		*pucRecBuf++ = (uint8_t)usTmpBuf;
+        usByteOffset = usStartAddress / 8;
+        usNPreBits = usStartAddress - usByteOffset * 8;
+        usMask = (1 << sNumOfData) - 1;
+        usTmpBuf  = g_ucCoilsBuf[usByteOffset];
+        usTmpBuf |= g_ucCoilsBuf[usByteOffset + 1] << 8;
 
-		sNumOfData = sNumOfData - 8;
-	}
+        // throw away unneeded bits
+        usTmpBuf = usTmpBuf >> usNPreBits;
+        // mask away bits above the requested bitfield
+        usTmpBuf     = usTmpBuf & usMask;
+        *pucRecBuf++ = (uint8_t)usTmpBuf;
+        sNumOfData   = sNumOfData - 8;
+    }
 }//end ReadCoils
 
 static void ReadHoldingRegisters(uint16_t usStartAddress,
-	                             uint16_t usNumOfData,
-	                             uint8_t *pucRecBuf)
+                                 uint16_t usNumOfData,
+                                 uint8_t *pucRecBuf)
 {
-	MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Read Holding Registers User function\r\n");
+    MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Read Holding Registers User function\r\n");
 
-	while (usNumOfData > 0)
-	{
-		*pucRecBuf++ = (uint8_t)(g_sHoldingRegsBuf[usStartAddress] >> 8);
-		*pucRecBuf++ = (uint8_t)(g_sHoldingRegsBuf[usStartAddress] & 0xFF);
-		usStartAddress++;
-		usNumOfData--;
-	}
+    while (usNumOfData > 0)
+    {
+        *pucRecBuf++ = (uint8_t)(g_sHoldingRegsBuf[usStartAddress] >> 8);
+        *pucRecBuf++ = (uint8_t)(g_sHoldingRegsBuf[usStartAddress] & 0xFF);
+        usStartAddress++;
+        usNumOfData--;
+    }
 }//end ReadHoldingRegisters
 //****************************************************************************/
 //                             End of file

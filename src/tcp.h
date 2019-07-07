@@ -28,6 +28,12 @@
 //****************************************************************************
 //                           Global Functions
 //****************************************************************************
+//
+//! @brief Initalise TCP Server Socket and Call Modbus Application
+//! @param[in]  None
+//! @param[out] None
+//! @return     None
+//
 void tcp_Init (void);
 
 #endif // TCP_H
