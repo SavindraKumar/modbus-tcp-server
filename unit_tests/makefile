@@ -26,7 +26,6 @@ SRC_FILES = \
 # ProductionCode library and links with the test runner
 SRC_DIRS =  \
    ../src \
-  
 
 # --- TEST_SRC_FILES ---
 # TEST_SRC_FILES specifies individual test files to build.  Test
