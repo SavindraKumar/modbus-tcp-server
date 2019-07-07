@@ -384,7 +384,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
             if (!((usDataStartAddress >= m_tModbusData.usHoldingRegisterStartAddress) &&
                  ((usDataStartAddress + usNumOfData) <= (m_tModbusData.usHoldingRegisterStartAddress + m_tModbusData.usMaxHoldingRegisters))))
             {
-                ucException = ILLEGAL_DATA_ADDRESS;
+                ucException = eILLEGAL_DATA_ADDRESS;
                 MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal holding register address\r\n");
             }
             break;
@@ -458,7 +458,7 @@ static uint16_t HandleRequest(const uint8_t *pucQuery, uint8_t *pucResponse)
 #endif//FC_WRITE_COILS_ENABLE
 
 #if FC_WRITE_HOLDING_REGISTERS_ENABLE
-    case FC_WRITE_HOLDING_REGISTERS:
+    case eFC_WRITE_HOLDING_REGISTERS:
         MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Writing holding registers\r\n");
         usResponseLen = WriteMultipleHoldingRegisters(pucQuery, pucResponse);
         break;
@@ -893,20 +893,9 @@ static uint16_t WriteMultipleHoldingRegisters(const uint8_t *pucQuery, uint8_t *
 
     usResponseLen = WRITE_HOLDING_REGISTERS_RESPONSE_LEN;
 
-    uint8_t ucCount = 0;
+    const uint8_t *pucRegBuf = &pucQuery[WRITE_VALUE_OFFSET];
 
-    while (usNumOfData > 0)
-    {
-        uint16_t usValue;
-
-        usValue  = (uint16_t)(pucQuery[WRITE_VALUE_OFFSET + ucCount] << 8);
-        ucCount++;
-        usValue |= (uint16_t)(pucQuery[WRITE_VALUE_OFFSET + ucCount]);
-        m_tModbusData.psHoldingRegisters[usStartAddress] = usValue;
-        ucCount++;
-        usStartAddress++;
-        usNumOfData--;
-    }
+    m_tModbusData.ptfnWriteHoldingRegisters(usStartAddress, usNumOfData, pucRegBuf);
 
     return (usResponseLen);
 }//end WriteMultipleHoldingRegisters

@@ -229,7 +229,26 @@ static void WriteHoldingRegisters(uint16_t usStartAddress,
 
         g_sHoldingRegsBuf[usStartAddress] = (int16_t)usValue;
     }
+    else
+    {
+        MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Write Holding Registers User function\r\n");
 
+        uint8_t  ucCount = 0;
+
+        while (usNumOfData > 0)
+        {
+            uint16_t usValue = 0;
+
+            usValue  = (uint16_t)(pucWriteBuf[ucCount] << 8);
+            ucCount++;
+            usValue |= (uint16_t)(pucWriteBuf[ucCount]);
+            g_sHoldingRegsBuf[usStartAddress] = (int16_t)usValue;
+
+            ucCount++;
+            usStartAddress++;
+            usNumOfData--;
+        }
+    }
 }//end WriteHoldingRegisters
 //****************************************************************************/
 //                             End of file

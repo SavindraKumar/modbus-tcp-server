@@ -80,7 +80,7 @@ typedef struct ModbusData
 #define MBT_CONF_FC_WRITE_COILS_ENABLE              0
 
 //! @brief Enable or Disable Write Single Holding Registers Function Code
-#define MBT_CONF_FC_WRITE_HOLDING_REGISTERS_ENABLE  0
+#define MBT_CONF_FC_WRITE_HOLDING_REGISTERS_ENABLE  1
 
 //****************************************************************************
 //                           Global variables
