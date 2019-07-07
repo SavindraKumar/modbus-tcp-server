@@ -33,12 +33,12 @@ int16_t g_sInputRegsBuf[MAX_INPUT_REGISTERS]                = {1, 2, 3};
 int16_t g_sHoldingRegsBuf[MAX_HOLDING_REGISTERS]            = {5, 6, 7};
 uint8_t g_ucDiscreteInputsBuf[DISCRETE_INPUT_BUF_SIZE]      = {0xef};
 uint8_t g_ucCoilsBuf[COILS_BUF_SIZE]                        = {5};
-int16_t g_sHoldingRegsLowerLimitBuf[MAX_HOLDING_REGISTERS]  = {0, 0, 0};
-int16_t g_sHoldingRegsHigherLimitBuf[MAX_HOLDING_REGISTERS] = {200, 200, 200};
 
 //****************************************************************************/
 //                           Local variables
 //****************************************************************************/
+static int16_t g_sHoldingRegsLowerLimitBuf[MAX_HOLDING_REGISTERS]  = {0, 0, 0};
+static int16_t g_sHoldingRegsHigherLimitBuf[MAX_HOLDING_REGISTERS] = {200, 200, 200};
 
 //****************************************************************************/
 //                           Local Functions

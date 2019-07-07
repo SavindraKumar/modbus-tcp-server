@@ -96,8 +96,8 @@ typedef struct ModbusData
 //                           Global Functions
 //****************************************************************************
 //
-//! @brief Intialise Modbus Data
-//! @param[in]  ModbusData  Modbus data structure
+//! @brief Initialize Modbus Data
+//! @param[in]  tModbusData  Modbus data structure
 //! @return     None
 //
 void mbap_DataInit(ModbusData_t tModbusData);

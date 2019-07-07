@@ -29,7 +29,7 @@
 //                           Global Functions
 //****************************************************************************
 //
-//! @brief Initalise TCP Server Socket and Call Modbus Application
+//! @brief Initialize TCP Server Socket and Call Modbus Application
 //! @param[in]  None
 //! @param[out] None
 //! @return     None

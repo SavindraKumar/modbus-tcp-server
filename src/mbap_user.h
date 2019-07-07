@@ -38,8 +38,6 @@ extern int16_t g_sInputRegsBuf[MAX_INPUT_REGISTERS];
 extern int16_t g_sHoldingRegsBuf[MAX_HOLDING_REGISTERS];
 extern uint8_t g_ucDiscreteInputsBuf[DISCRETE_INPUT_BUF_SIZE];
 extern uint8_t g_ucCoilsBuf[COILS_BUF_SIZE];
-extern int16_t g_sHoldingRegsLowerLimitBuf[MAX_HOLDING_REGISTERS];
-extern int16_t g_sHoldingRegsHigherLimitBuf[MAX_HOLDING_REGISTERS];
 
 //****************************************************************************
 //                           Global Functions
