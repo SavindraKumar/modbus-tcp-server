@@ -351,7 +351,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
             if (!((usDataStartAddress >= m_tModbusData.usCoilsStartAddress) &&
                  (usDataStartAddress <= (m_tModbusData.usCoilsStartAddress + m_tModbusData.usMaxCoils))))
             {
-                ucException = ILLEGAL_DATA_ADDRESS;
+                ucException = eILLEGAL_DATA_ADDRESS;
                 MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal coil address\r\n");
             }
             break;
@@ -437,7 +437,7 @@ static uint16_t HandleRequest(const uint8_t *pucQuery, uint8_t *pucResponse)
 #endif//FC_READ_INPUT_REGISTERS_ENABLE
 
 #if FC_WRITE_COIL_ENABLE
-    case FC_WRITE_COIL:
+    case eFC_WRITE_COIL:
         MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Writing coil\r\n");
         usResponseLen = WriteSingleCoil(pucQuery, pucResponse);
         break;
@@ -652,66 +652,22 @@ static uint16_t ReadInputRegisters(const uint8_t *pucQuery, uint8_t *pucResponse
 static uint16_t WriteSingleCoil(const uint8_t *pucQuery, uint8_t *pucResponse)
 {
     uint16_t usDataStartAddress = 0;
-    uint16_t usCoilValue        = 0;
     uint16_t usStartAddress     = 0;
     uint16_t usResponseLen      = 0;
 
     usDataStartAddress  = (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET] << 8);
     usDataStartAddress |= (uint16_t)(pucQuery[DATA_START_ADDRESS_OFFSET + 1]);
-    usCoilValue         = (uint16_t)(pucQuery[COIL_VALUE_OFFSSET] << 8);
-    usCoilValue        |= (uint16_t)(pucQuery[COIL_VALUE_OFFSSET + 1]);
+
 
     usStartAddress = usDataStartAddress - m_tModbusData.usCoilsStartAddress;
 
-    if (0xFF00 == usCoilValue)
-    {
-        //Turn on coil
-        usCoilValue = 1;
-    }
-    else if (0x0000 == usCoilValue)
-    {
-        //Turn off coil
-        usCoilValue = 0;
-    }
-    else
-    {
-        return usResponseLen;
-    }
+    const uint8_t *pucCoilBuf = &pucQuery[COIL_VALUE_OFFSSET];
+
+    m_tModbusData.ptfnWriteCoils(usStartAddress, 1, pucCoilBuf);
 
     //Copy same data in response as received in query
     usResponseLen = WRITE_SINGLE_COIL_RESPONSE_LEN;
     memcpy(pucResponse, pucQuery, usResponseLen);
-
-    uint16_t  usTmp        = 0;
-    uint16_t  usMask       = 0;
-    uint16_t  usByteOffset = 0;
-    uint16_t  usNPreBits   = 0;
-    uint8_t   ucNumOfBits  = 1;
-
-    // Calculate byte offset for first byte containing the bit values starting
-    // at usBitOffset
-    usByteOffset = usStartAddress / 8;
-
-    // How many bits precede our bits to set
-    usNPreBits = usStartAddress - usByteOffset * 8;
-
-    // Move bit field into position over bits to set
-    usCoilValue <<= usNPreBits;
-
-    // Prepare a mask for setting the new bits
-    usMask   = (uint16_t)((1 << ucNumOfBits) - 1);
-    usMask <<= usStartAddress - usByteOffset * 8;
-
-    // copy bits into temporary storage
-    usTmp  = m_tModbusData.pucCoils[usByteOffset];
-    usTmp |= m_tModbusData.pucCoils[usByteOffset + 1] << 8;
-
-    // Zero out bit field bits and then or value bits into them
-    usTmp = (usTmp & (~usMask)) | usCoilValue;
-
-    // move bits back into storage
-    m_tModbusData.pucCoils[usByteOffset]     = (uint8_t)(usTmp & 0xFF);
-    m_tModbusData.pucCoils[usByteOffset + 1] = (uint8_t)(usTmp >> 8);
 
     return usResponseLen;
 }//end WriteSingleCoil

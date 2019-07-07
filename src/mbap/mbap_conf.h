@@ -39,6 +39,11 @@ typedef void(*pfnReadHoldingRegisters)(uint16_t usStartAddress,
 typedef void(*pfnWriteHoldingRegisters)(uint16_t usStartAddress,
                                         uint16_t usNumOfData,
                                         const uint8_t *pucWriteBuf);
+
+typedef void(*pfnWriteCoils)(uint16_t usStartAddress,
+                             int16_t sNumOfData,
+                             const uint8_t *pucWriteBuf);
+
 typedef struct ModbusData
 {
     int16_t                       *psHoldingRegisterLowerLimit;  //!<Pointer to Holding Register Lower Limits
@@ -56,6 +61,7 @@ typedef struct ModbusData
     pfnReadDiscreteInputs         ptfnReadDiscreteInputs;        //!<Read Discrete Inputs function
     pfnReadCoils                  ptfnReadCoils;                 //!<Read Coils function
     pfnWriteHoldingRegisters      ptfnWriteHoldingRegisters;     //!<Write Holding Registers function
+    pfnWriteCoils                 ptfnWriteCoils;                //!<Write Coils function
 } ModbusData_t;
 
 //! @brief Enable or Disable Read Coils  Function Code
@@ -71,7 +77,7 @@ typedef struct ModbusData
 #define MBT_CONF_FC_READ_INPUT_REGISTERS_ENABLE     1
 
 //! @brief Enable or Disable Write Single Coil Function Code
-#define MBT_CONF_FC_WRITE_COIL_ENABLE               0
+#define MBT_CONF_FC_WRITE_COIL_ENABLE               1
 
 //! @brief Enable or Disable Write Single Holding Register Function Code
 #define MBT_CONF_FC_WRITE_HOLDING_REGISTER_ENABLE   1

@@ -96,6 +96,16 @@ static void WriteHoldingRegisters(uint16_t usStartAddress,
                                   uint16_t usNumOfData,
                                   const uint8_t *pucWriteBuf);
 
+//
+//! @brief Write Coils into user data
+//! @param[in]   usStartAddress Coils start address
+//! @param[in]   sNumOfData     Number of Coils to write
+//! @param[out]  pucWriteBuf    Write buffer holds Coils
+//! @return      None
+static void WriteCoils(uint16_t usStartAddress,
+                       int16_t sNumOfData,
+                       const uint8_t *pucWriteBuf);
+
 //****************************************************************************/
 //                    G L O B A L  F U N C T I O N S
 //****************************************************************************/
@@ -119,6 +129,7 @@ void mu_Init(void)
     tModbusData.ptfnReadDiscreteInputs        = ReadDiscreteInputs;
     tModbusData.ptfnReadCoils                 = ReadCoils;
     tModbusData.ptfnWriteHoldingRegisters     = WriteHoldingRegisters;
+    tModbusData.ptfnWriteCoils                = WriteCoils;
 
     //pass modbus data data pointer to modbus tcp application
     mbap_DataInit(tModbusData);
@@ -250,6 +261,57 @@ static void WriteHoldingRegisters(uint16_t usStartAddress,
         }
     }
 }//end WriteHoldingRegisters
+
+static void WriteCoils(uint16_t usStartAddress,
+                       int16_t sNumOfData,
+                       const uint8_t *pucWriteBuf)
+{
+    uint16_t  usCoilValue  = 0;
+    uint16_t  usTmp        = 0;
+    uint16_t  usMask       = 0;
+    uint16_t  usByteOffset = 0;
+    uint16_t  usNPreBits   = 0;
+
+    usCoilValue         = (uint16_t)(pucWriteBuf[0] << 8);
+    usCoilValue        |= (uint16_t)(pucWriteBuf[1]);
+
+    if (0xFF00 == usCoilValue)
+    {
+        //Turn on coil
+        usCoilValue = 1;
+    }
+    else if (0x0000 == usCoilValue)
+    {
+        //Turn off coil
+        usCoilValue = 0;
+    }
+
+    // Calculate byte offset for first byte containing the bit values starting
+    // at usBitOffset
+    usByteOffset = usStartAddress / 8;
+
+    // How many bits precede our bits to set
+    usNPreBits = usStartAddress - usByteOffset * 8;
+
+    // Move bit field into position over bits to set
+    usCoilValue <<= usNPreBits;
+
+    // Prepare a mask for setting the new bits
+    usMask   = (uint16_t)((1 << sNumOfData) - 1);
+    usMask <<= usStartAddress - usByteOffset * 8;
+
+    // copy bits into temporary storage
+    usTmp  = g_ucCoilsBuf[usByteOffset];
+    usTmp |= g_ucCoilsBuf[usByteOffset + 1] << 8;
+
+    // Zero out bit field bits and then or value bits into them
+    usTmp = (usTmp & (~usMask)) | usCoilValue;
+
+    // move bits back into storage
+    g_ucCoilsBuf[usByteOffset]     = (uint8_t)(usTmp & 0xFF);
+    g_ucCoilsBuf[usByteOffset + 1] = (uint8_t)(usTmp >> 8);
+
+}//end WriteCoils
 //****************************************************************************/
 //                             End of file
 //****************************************************************************/
