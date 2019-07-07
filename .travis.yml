@@ -24,4 +24,4 @@ jobs:
       - cp -r lib ../lib
       - cd ..
       - cd ..
-      - cd tests && make -B
+      - cd unit_tests && make -B gcov

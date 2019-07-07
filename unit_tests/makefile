@@ -17,15 +17,15 @@ endif
 # a library and links with the test runner.
 # This is so that test code can override production code at link time.
 SRC_FILES = \
-   ../src/mbap/mbap.c \
-
+   ../src/mbap.c \
+   ../src/mbap_user.c
 # --- SRC_DIRS ---
 # Use SRC_DIRS to specifiy production directories
 # code files.
 # These files are compiled and put into a the
 # ProductionCode library and links with the test runner
 SRC_DIRS =  \
-   ../src/mbap \   
+   ../src \
 
 # --- TEST_SRC_FILES ---
 # TEST_SRC_FILES specifies individual test files to build.  Test
@@ -85,6 +85,9 @@ CPPUTEST_LIB_DIR = build/1/2
 # The compiler is basically telling you how to fix the
 # build problem.  You would add this flag setting
 #     CPPUTEST_CXXFLAGS += -Wno-c++14-compat
+
+#gcov enable
+CPPUTEST_USE_GCOV=Y
 
 ifeq ($(shell $(CC) -v 2>&1 | grep -c "clang"), 1)
 CPPUTEST_WARNINGFLAGS += -Wno-unknown-warning-option

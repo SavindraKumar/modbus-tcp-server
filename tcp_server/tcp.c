@@ -13,6 +13,8 @@
 //                           Includes
 //****************************************************************************/
 //standard header files
+#include "../tcp_server/tcp.h"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -47,12 +49,6 @@
 //****************************************************************************/
 //                    G L O B A L  F U N C T I O N S
 //****************************************************************************/
-//
-//! @brief Initalise TCP Server Socket and Call Modbus Application
-//! @param[in]  None
-//! @param[out] None
-//! @return     None
-//
 void tcp_Init(void)
 {
     uint8_t pucQuery[BUFF_SIZE_IN_BYTES];
