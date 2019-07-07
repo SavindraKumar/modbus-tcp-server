@@ -13,6 +13,8 @@
 //                           Includes
 //****************************************************************************/
 //standard header files
+#include "../tcp_server/tcp.h"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -23,7 +25,6 @@
 #include <unistd.h>
 //user defined header files
 #include "mbap_conf.h"
-#include "tcp.h"
 //****************************************************************************/
 //                           Defines and typedefs
 //****************************************************************************/
