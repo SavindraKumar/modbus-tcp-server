@@ -362,7 +362,7 @@ static uint8_t ValidateFunctionCodeAndDataAddress(const uint8_t *pucQuery)
             if (!((usDataStartAddress >= m_tModbusData.usHoldingRegisterStartAddress) &&
                  (usDataStartAddress <= (m_tModbusData.usHoldingRegisterStartAddress + m_tModbusData.usMaxHoldingRegisters))))
             {
-                ucException = ILLEGAL_DATA_ADDRESS;
+                ucException = eILLEGAL_DATA_ADDRESS;
                 MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_WARNING, "Illegal holding register address\r\n");
             }
             break;
@@ -444,7 +444,7 @@ static uint16_t HandleRequest(const uint8_t *pucQuery, uint8_t *pucResponse)
 #endif//FC_WRITE_COIL_ENABLE
 
 #if FC_WRITE_HOLDING_REGISTER_ENABLE
-    case FC_WRITE_HOLDING_REGISTER:
+    case eFC_WRITE_HOLDING_REGISTER:
         MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Writing holding register\r\n");
         usResponseLen = WriteSingleHoldingRegister(pucQuery, pucResponse);
         break;
@@ -736,7 +736,9 @@ static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *puc
     if ((m_tModbusData.psHoldingRegisterHigherLimit[usStartAddress] >= (int16_t) usRegisterValue) &&
         (m_tModbusData.psHoldingRegisterLowerLimit[usStartAddress] <= (int16_t) usRegisterValue))
     {
-        m_tModbusData.psHoldingRegisters[usStartAddress] = usRegisterValue;
+        const uint8_t *pucRegBuf = &pucQuery[REGISTER_VALUE_OFFSET];
+        m_tModbusData.ptfnWriteHoldingRegisters(usStartAddress, 1, pucRegBuf);
+
         //Copy same data in response as received in query
         usResponseLen = WRITE_SINGLE_REGISTER_RESPONSE_LEN;
         memcpy(pucResponse, pucQuery, usResponseLen);
@@ -747,7 +749,7 @@ static uint16_t WriteSingleHoldingRegister(const uint8_t *pucQuery, uint8_t *puc
         pucResponse[MBAP_LEN_OFFSET]                = (uint8_t)(usPduLength << 8);
         pucResponse[MBAP_LEN_OFFSET + 1]            = (uint8_t)(usPduLength & 0xFF);
         pucResponse[EXCEPTION_FUNCTION_CODE_OFFSET] = EXCEPTION_START_FUNCTION_CODE + pucQuery[FUNCTION_CODE_OFFSET];
-        pucResponse[EXCEPTION_TYPE_OFFSET]          = ILLEGAL_DATA_VALUE;
+        pucResponse[EXCEPTION_TYPE_OFFSET]          = eILLEGAL_DATA_VALUE;
         usResponseLen                               = EXCEPTION_PACKET_LEN;
     }
 

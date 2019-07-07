@@ -68,7 +68,7 @@ static void ReadCoils(uint16_t usStartAddress,
 //
 //! @brief Read input registers from user data
 //! @param[in]   usStartAddress Input registers start address
-//! @param[in]   sNumOfData     Number of input registers to read
+//! @param[in]   usNumOfData    Number of input registers to read
 //! @param[out]  pucRecBuf      Receive buffer holds input registers
 //! @return      None
 //
@@ -79,39 +79,49 @@ static void ReadInputRegisters(uint16_t usStartAddress,
 //
 //! @brief Read holding registers from user data
 //! @param[in]   usStartAddress Holding registers start address
-//! @param[in]   sNumOfData     Number of holding registers to read
+//! @param[in]   usNumOfData    Number of holding registers to read
 //! @param[out]  pucRecBuf      Receive buffer holds holding registers
 //! @return      None
 static void ReadHoldingRegisters(uint16_t usStartAddress,
                                  uint16_t usNumOfData,
                                  uint8_t *pucRecBuf);
 
+//
+//! @brief Write holding registers into user data
+//! @param[in]   usStartAddress Holding registers start address
+//! @param[in]   usNumOfData    Number of holding registers to write
+//! @param[out]  pucWriteBuf    Write buffer holds holding registers
+//! @return      None
+static void WriteHoldingRegisters(uint16_t usStartAddress,
+                                  uint16_t usNumOfData,
+                                  const uint8_t *pucWriteBuf);
 
 //****************************************************************************/
 //                    G L O B A L  F U N C T I O N S
 //****************************************************************************/
 void mu_Init(void)
 {
-    ModbusData_t ModbusData;
+    ModbusData_t tModbusData;
 
     //Init modbus data
-    ModbusData.usInputRegisterStartAddress   = INPUT_REGISTER_START_ADDRESS;
-    ModbusData.usMaxInputRegisters           = MAX_INPUT_REGISTERS;
-    ModbusData.usHoldingRegisterStartAddress = HOLDING_REGISTER_START_ADDRESS;
-    ModbusData.usMaxHoldingRegisters         = MAX_HOLDING_REGISTERS;
-    ModbusData.psHoldingRegisterLowerLimit   = g_sHoldingRegsLowerLimitBuf;
-    ModbusData.psHoldingRegisterHigherLimit  = g_sHoldingRegsHigherLimitBuf;
-    ModbusData.usDiscreteInputStartAddress   = DISCRETE_INPUTS_START_ADDRESS;
-    ModbusData.usMaxDiscreteInputs           = MAX_DISCRETE_INPUTS;
-    ModbusData.usCoilsStartAddress           = COILS_START_ADDRESS;
-    ModbusData.usMaxCoils                    = MAX_COILS;
-    ModbusData.ptfnReadInputRegisters        = ReadInputRegisters;
-    ModbusData.ptfnReadHoldingRegisters      = ReadHoldingRegisters;
-    ModbusData.ptfnReadDiscreteInputs        = ReadDiscreteInputs;
-    ModbusData.ptfnReadCoils                 = ReadCoils;
+    tModbusData.usInputRegisterStartAddress   = INPUT_REGISTER_START_ADDRESS;
+    tModbusData.usMaxInputRegisters           = MAX_INPUT_REGISTERS;
+    tModbusData.usHoldingRegisterStartAddress = HOLDING_REGISTER_START_ADDRESS;
+    tModbusData.usMaxHoldingRegisters         = MAX_HOLDING_REGISTERS;
+    tModbusData.psHoldingRegisterLowerLimit   = g_sHoldingRegsLowerLimitBuf;
+    tModbusData.psHoldingRegisterHigherLimit  = g_sHoldingRegsHigherLimitBuf;
+    tModbusData.usDiscreteInputStartAddress   = DISCRETE_INPUTS_START_ADDRESS;
+    tModbusData.usMaxDiscreteInputs           = MAX_DISCRETE_INPUTS;
+    tModbusData.usCoilsStartAddress           = COILS_START_ADDRESS;
+    tModbusData.usMaxCoils                    = MAX_COILS;
+    tModbusData.ptfnReadInputRegisters        = ReadInputRegisters;
+    tModbusData.ptfnReadHoldingRegisters      = ReadHoldingRegisters;
+    tModbusData.ptfnReadDiscreteInputs        = ReadDiscreteInputs;
+    tModbusData.ptfnReadCoils                 = ReadCoils;
+    tModbusData.ptfnWriteHoldingRegisters     = WriteHoldingRegisters;
 
     //pass modbus data data pointer to modbus tcp application
-    mbap_DataInit(ModbusData);
+    mbap_DataInit(tModbusData);
 }
 
 //****************************************************************************/
@@ -203,6 +213,24 @@ static void ReadHoldingRegisters(uint16_t usStartAddress,
         usNumOfData--;
     }
 }//end ReadHoldingRegisters
+
+static void WriteHoldingRegisters(uint16_t usStartAddress,
+                                  uint16_t usNumOfData,
+                                  const uint8_t *pucWriteBuf)
+{
+    uint16_t usValue = 0;
+
+    if (1 == usNumOfData)
+    {
+        MBT_DEBUGF(MBT_CONF_DEBUG_LEVEL_MSG, "Write Holding Register User function\r\n");
+
+        usValue     = (uint16_t)(pucWriteBuf[0] << 8);
+        usValue    |= (uint16_t)(pucWriteBuf[1]);
+
+        g_sHoldingRegsBuf[usStartAddress] = (int16_t)usValue;
+    }
+
+}//end WriteHoldingRegisters
 //****************************************************************************/
 //                             End of file
 //****************************************************************************/

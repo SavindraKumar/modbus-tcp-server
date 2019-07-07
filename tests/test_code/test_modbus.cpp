@@ -145,7 +145,6 @@ TEST(Module, illegal_function_code)
     CHECK_EQUAL(eILLEGAL_FUNCTION_CODE, pucResponse[MBT_BYTE_COUNT_OFFSET] );
 }
 
-#if 0
 TEST(Module, write_single_holding_register)
 {
     uint8_t ucQueryBuf[QUERY_LEN] = {0, 0, 0, 0, 0, 6, 1, 6, 0, 1, 0, 200};
@@ -178,9 +177,9 @@ TEST(Module, illega_data_value)
     memcpy(pucQuery, ucQueryBuf, QUERY_LEN);
     
     CHECK_EQUAL(ucResponseLen, mbap_ProcessRequest(pucQuery, QUERY_LEN, pucResponse));
-    CHECK_EQUAL(ILLEGAL_DATA_VALUE, pucResponse[MBT_BYTE_COUNT_OFFSET] );
+    CHECK_EQUAL(eILLEGAL_DATA_VALUE, pucResponse[MBT_BYTE_COUNT_OFFSET] );
 }
-#endif
+
 TEST(Module, read_discrete_inputs)
 {
     uint8_t ucQueryBuf[QUERY_LEN] = {0, 0, 0, 0, 0, 6, 1, 2, 0, 0, 0, 3};
