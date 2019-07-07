@@ -21,11 +21,11 @@
 //                           Constants and typedefs
 //****************************************************************************
 typedef void(*pfnReadDiscreteInputs)(uint16_t usStartAddress,
-                                     int16_t usNumOfData,
+                                     int16_t sNumOfData,
                                      uint8_t *pucRecBuf);
 
 typedef void(*pfnReadCoils)(uint16_t usStartAddress,
-                            int16_t usNumOfData,
+                            int16_t sNumOfData,
                             uint8_t *pucRecBuf);
 
 typedef void(*pfnReadInputRegisters)(uint16_t usStartAddress,
@@ -92,7 +92,7 @@ typedef struct ModbusData
 //! @param[in]  ModbusData  Modbus data structure
 //! @return     None
 //
-void mbap_DataInit(ModbusData_t ModbusData);
+void mbap_DataInit(ModbusData_t tModbusData);
 
 //
 //! @brief Process Modbus TCP Application request

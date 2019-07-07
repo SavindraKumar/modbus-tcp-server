@@ -22,23 +22,23 @@
 //!Modbus Function Codes
 enum FunctionCode
 {
-    FC_READ_COILS              = 1,  //!< Read Coils Function Code
-    FC_READ_DISCRETE_INPUTS    = 2,  //!< Read Discrete Inputs Function Code
-    FC_READ_HOLDING_REGISTERS  = 3,  //!< Read Holding Registers Function Code
-    FC_READ_INPUT_REGISTERS    = 4,  //!< Read Read Input Registers Function Code
-    FC_WRITE_COIL              = 5,  //!< Write Single Coil Function Code
-    FC_WRITE_HOLDING_REGISTER  = 6,  //!< Write Single Holding Register Function Code
-    FC_WRITE_COILS             = 15, //!< Write Multiple Coils Function Code
-    FC_WRITE_HOLDING_REGISTERS = 16  //!< Write Multiple Holding Registers Function Code
+    eFC_READ_COILS              = 1,  //!< Read Coils Function Code
+    eFC_READ_DISCRETE_INPUTS    = 2,  //!< Read Discrete Inputs Function Code
+    eFC_READ_HOLDING_REGISTERS  = 3,  //!< Read Holding Registers Function Code
+    eFC_READ_INPUT_REGISTERS    = 4,  //!< Read Read Input Registers Function Code
+    eFC_WRITE_COIL              = 5,  //!< Write Single Coil Function Code
+    eFC_WRITE_HOLDING_REGISTER  = 6,  //!< Write Single Holding Register Function Code
+    eFC_WRITE_COILS             = 15, //!< Write Multiple Coils Function Code
+    eFC_WRITE_HOLDING_REGISTERS = 16  //!< Write Multiple Holding Registers Function Code
 };
 
 //!Modbus Exception
 enum Exception
 {
-    NO_EXCEPTION          = 0,     //!< No Exception
-    ILLEGAL_FUNCTION_CODE = 1,     //!< Illegal Function Code
-    ILLEGAL_DATA_ADDRESS  = 2,     //!< Illegal Data Address
-    ILLEGAL_DATA_VALUE    = 3      //!< Illegal Data Value
+    eNO_EXCEPTION          = 0,     //!< No Exception
+    eILLEGAL_FUNCTION_CODE = 1,     //!< Illegal Function Code
+    eILLEGAL_DATA_ADDRESS  = 2,     //!< Illegal Data Address
+    eILLEGAL_DATA_VALUE    = 3      //!< Illegal Data Value
 };
 
 //! @brief  Read Coils Function Code enable or not

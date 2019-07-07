@@ -175,10 +175,10 @@ static void ReadCoils(uint16_t usStartAddress,
         uint16_t  usNPreBits;
 
         usByteOffset = usStartAddress / 8;
-        usNPreBits = usStartAddress - usByteOffset * 8;
-        usMask = (1 << sNumOfData) - 1;
-        usTmpBuf  = g_ucCoilsBuf[usByteOffset];
-        usTmpBuf |= g_ucCoilsBuf[usByteOffset + 1] << 8;
+        usNPreBits   = usStartAddress - usByteOffset * 8;
+        usMask       = (1 << sNumOfData) - 1;
+        usTmpBuf     = g_ucCoilsBuf[usByteOffset];
+        usTmpBuf    |= g_ucCoilsBuf[usByteOffset + 1] << 8;
 
         // throw away unneeded bits
         usTmpBuf = usTmpBuf >> usNPreBits;
