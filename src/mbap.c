@@ -220,7 +220,6 @@ void mbap_DataInit(ModbusData_t tModbusData)
 uint16_t mbap_ProcessRequest(const uint8_t *pucQuery, uint8_t ucQueryLen, uint8_t *pucResponse)
 {
     uint16_t usResponseLen = 0;
-    uint8_t  ucException   = 0;
     bool     bIsQueryOk    = false;
 
     bIsQueryOk = BasicValidation(pucQuery);
@@ -229,6 +228,8 @@ uint16_t mbap_ProcessRequest(const uint8_t *pucQuery, uint8_t ucQueryLen, uint8_
     //Proceed for next validation steps
     if (bIsQueryOk)
     {
+        uint8_t ucException = 0;
+        
         ucException = ValidateFunctionCodeAndDataAddress(pucQuery);
 
         if (ucException)
